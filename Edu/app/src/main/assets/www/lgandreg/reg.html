@@ -1,0 +1,215 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <meta content="yes" name="apple-mobile-web-app-capable"/>
+    <meta content="black" name="apple-mobile-web-app-status-bar-style"/>
+    <meta content="telephone=no" name="format-detection"/>
+    <meta name="viewport" content="width=device-width"/>
+    <link rel="stylesheet" href="../css/common.css">
+    <script type="text/javascript" src="../js/jquery-1.8.3.min.js">
+    </script>
+    <script type="text/javascript" src="../cordova.js"></script>
+    <script type="text/javascript" src="../js/md5.js"></script>
+</head>
+<script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+<body class="mWrap">
+<header class="topHd">
+    <a href="javascript:pageBack();" class="back">返回</a>
+    <a href="index.html" class="home">首页</a>
+    <span>用户注册</span>
+</header>
+<form id="registerForm">
+    <input type="hidden" id="userid" name="userid"/>
+    <section class="mContent">
+        <ul class="form">
+            <li>
+                <input type="text" id="username" class="input" placeholder="请输入用户名：" id="name" name="username" onblur="checkusername()"/>
+                <font color="red" class="font" id="msg1"></font>
+            </li>
+            <li>
+                <input type="password" class="input"
+                       placeholder="密   码：（6-12位英文或数字） " id="userPassword" name="passwd" onblur="checkpasswd()"/>
+                <font color="red" class="font" id="msg2"></font>
+            </li>
+            <li>
+                <input type="password" class="input" placeholder="确认密码：" id="userPassword_" maxlength="20" onblur="checkpasswd_()"/>
+                <font color="red" class="font" id="msg3"></font>
+            </li>
+
+            <li class="btnArea">
+                <input type="button" class="btn" id="hlkOK" value="注&nbsp;&nbsp;册"/>
+            </li>
+        </ul>
+    </section>
+</form>
+
+<footer class="Mfoot">
+    <p class="nav">
+        <a href="login.html" data-ajax="false">登录</a><em>|</em><a href="reg.html">注册</a><em>|</em><a
+            href="javascript:window.scrollTo(0,0);">返回顶部</a>
+    </p>
+
+    <p class="cp">
+        <a href="www.easec.com" data-ajax="false">电脑版</a>
+    </p>
+
+    <p class="copyright">
+        &copy;www.easec.com
+    </p>
+</footer>
+<script type="text/javascript">
+    // 判断是否登录
+    var username1 = '';
+    if (username1 != '') {//已经登录
+        $('.Mfoot .nav').empty();
+        var divuserText = '<a href="personal.html">' + username1 + '</a><em>|</em><a href="logout.action" class="blue">退出</a><em>|</em>'
+                + '<a href="javascript:window.scrollTo(0,0);">返回顶部</a>';
+        $('.Mfoot .nav').html(divuserText);
+    }
+</script>
+</body>
+<script type="text/javascript">
+    var reg = /^[A-Za-z0-9]+$/;
+    function register_submit() {
+        if($('#username').val() == ''){
+            $('#msg1').text("用户名不能为空");
+            return false;
+        }else{
+            $('#msg1').text("");
+        }
+        if($('#username').val() =="admin" || $('#username').val()=="root" || !reg.test($('#username').val())){
+            $('#msg1').text("用户名不能特殊名例如admin,root或特殊字符、汉字等");
+            $('#username').val("");
+            return false;
+        }else{
+            $('#msg1').text("");
+        }
+        if ($('#userPassword').val() == '') {
+            $('#msg2').text("密码不能为空");
+            return false;
+        }else{
+            $('#msg2').text("");
+        }
+        if($('#userPassword').val().length <6 || $('#userPassword').val().length>12 || !reg.test($('#userPassword').val())){
+            $('#msg2').text("密码为6-12位英文或数字");
+            //$('#userPassword').val("");
+            return false;
+        }else{
+            $('#msg2').text("");
+        }
+        if ($('#userPassword').val() != $('#userPassword_').val()) {
+            $('#msg3').text("密码和确认密码不一致");
+            $('#userPassword_').val("");
+            return false;
+        }else{
+            $('#msg3').text("");
+        }
+        return true;
+        //$('#registerForm').submit();
+    }
+
+    //检查用户名是否合法
+    function checkusername() {
+        if($('#username').val() == ''){
+            $('#msg1').text("用户名不能为空");
+            return false;
+        }else{
+            $('#msg1').text("");
+        }
+        if($('#username').val() =="admin" || $('#username').val()=="root" || !reg.test($('#username').val())){
+            $('#msg1').text("用户名不能特殊名例如admin,root或特殊字符、汉字等");
+            //$('#username').val("");
+            return false;
+        }else{
+            $('#msg1').text("");
+        }
+
+        $.ajax({
+            type: "get",
+            async: false,
+            //url: "http://192.168.1.102:8084/EduWeb/CheckServlet?username="+$('#username').val(),
+            url: "http://59.46.168.82:9090/EduWeb/CheckServlet?username=" + $('#username').val() + "&passwd=" + $('#userPassword').val(),
+            dataType: "jsonp",
+            jsonp: "callback",
+            jsonpCallback: "itemsSearchGet",
+            success: function (json) {
+                //alert(json['success']);
+                if (json['data'] == '1') {
+                    $('#msg1').text("用户名已被注册");
+                    //$('#username').val("");
+                    return false;
+                }else{
+                    $('#msg1').text("");
+                }
+            },
+            error: function () {
+                //alert("网络故障...");
+            }
+        });
+
+    }
+
+    //检查密码是否合法
+    function checkpasswd(){
+        if ($('#userPassword').val() == '') {
+            $('#msg2').text("密码不能为空");
+            return false;
+        }else{
+            $('#msg2').text("");
+        }
+        if($('#userPassword').val().length <6 || $('#userPassword').val().length>12 || !reg.test($('#userPassword').val())){
+            $('#msg2').text("密码为6-12位英文或数字");
+            $('#userPassword').val("");
+            return false;
+        }else{
+            $('#msg2').text("");
+        }
+
+    }
+
+    //检查两次密码是否一致
+    function checkpasswd_(){
+        if ($('#userPassword').val() != $('#userPassword_').val()) {
+            $('#msg3').text("密码和确认密码不一致");
+            $('#userPassword_').val("");
+            return false;
+        }else{
+            $('#msg3').text("");
+        }
+    }
+
+    $(document).ready(function () {
+        $('#hlkOK').click(function () {
+            if(register_submit()){
+                $.ajax({
+                    type: "get",
+                    async: false,
+                    //url: "http://192.168.1.101/Edu/RegeditServlet?username="+$('#username').val()+"&passwd="+$('#userPassword').val(),
+                    url: "http://59.46.168.82:9090/EduWeb/RegeditServlet?username=" + $('#username').val() + "&passwd=" + $('#userPassword').val(),
+                    dataType: "jsonp",
+                    jsonp: "callback",
+                    jsonpCallback: "itemsSearchGet",
+                    success: function (json) {
+                        //alert(json['success']);
+                        if (json['success'] == 'true') {
+                            //alert("aa");
+                            alert("注册成功");
+                            window.location = "login.html";
+                        }
+                    },
+                    error: function () {
+                        alert("fail");
+                    }
+                });
+            }
+
+        });
+    });
+</script>
+</html>

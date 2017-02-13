@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<script type="text/javascript" charset=utf-8 src="../js/cordova.js"></script>
+<link rel="stylesheet" href="../css/jquery.mobile-1.4.3.min.css"
+      type="text/css"/>
+<link rel="stylesheet" href="../css/iscroll.css"
+      type="text/css"/>
+<script type="text/javascript" charset=utf-8 src="../js/jquery-1.8.3.min.js">
+</script>
+<script type="text/javascript" charset=utf-8 src="../js/SqlHelper.js">
+</script>
+<style type="text/css">
+    /*.ui-icon-myback {*/
+        /*background-image: url(../images/myedu/back.png)*/
+    /*}*/
+</style>
+<script type="text/javascript">
+
+    var flag; //标志(公共info-public, 个人info-personal)
+    var myScroll, pullDownEl, pullDownOffset,
+            pullUpEl, pullUpOffset;
+    var userid = window.localStorage.getItem("username");
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        document.addEventListener("backbutton", onBackKeyDown, false);
+    }
+    function onBackKeyDown() {
+        window.location.href = "../info.html";
+    }
+
+    $(function () {
+        $("#indexpage").bind('pageinit', function () {
+            var paramString = document.location.search;
+            if (paramString == "") {
+                flag = null;
+            } else {
+                var reg = /^\?.*value=(.+)/i;
+                reg.exec(paramString);
+                flag = RegExp.$1;
+            }
+            if (flag == "public") {
+                $('#name').text("公共通知");
+            } else if (flag == "personal") {
+                $('#name').text("个人通知");
+            }
+            $.ajax({
+                type: "get",
+                async: false,
+                //url: "http://192.168.123.24:8084/EduWeb/GetInfoServlet?flag=" + flag + "&userid=" + userid,
+                url: "http://59.46.168.82:9090/EduWeb/GetInfoServlet?flag=" + flag +"&userid="+userid,
+                dataType: "jsonp",
+                jsonp: "callback",
+                jsonpCallback: "itemsSearchGet",
+                success: function (json) {
+                    var content = "";
+                    if (json['s'] == "n") {
+                    } else if (json['s'] == "y") {
+                        var sizeofinfo = json['size'];
+                        if (sizeofinfo > 10) {
+                            sizeofinfo = 10;
+                        }
+                        for (var i = 0; i < sizeofinfo; i++) {
+                            var title = json['titles'][i].title;
+                            var id = json['titles'][i].id;
+                            var titledate = json['titles'][i].n_date;
+                            var thetime = json['titles'][i].n_time;
+                            var theindate = json['titles'][i].n_indate;
+                            var value = flag +";"+ id;
+                            content = content + "<li>";
+                            content = content + "<a href='getOneInfo.html?value="+value+"' data-ajax='false'>";
+                            content = content + "<img src=\"../images/QQ.png\">";
+                            content = content + "<p style='font-size: 14px'>";
+                            content = content + id + ":" + title;
+                            content = content + "</p>";
+                            content = content + "<font style='font-size: 12px; color:gray'>" + titledate + "</font>";
+                            content = content + "</a>";
+                            content = content + "</li>";
+                            if (i == sizeofinfo - 1) {
+                                window.localStorage.setItem("firstId", id);
+                            }
+                        }
+                    }
+                    $("#thelist").prepend(content).listview('refresh');
+                    myScroll.refresh();
+                },
+                error: function () {
+                    alert("fail");
+                }
+            });
+        });
+    });
+
+    function pullDownAction() {
+        $("#thelist").append("").listview('refresh');
+        myScroll.refresh();
+    }
+    function pullUpAction() {
+        setTimeout(function () {	// <-- Simulate network congestion, remove setTimeout from production!
+            $(function () {
+                var rfirstid = window.localStorage.getItem("firstId");
+                $.ajax({
+                    type: "get",
+                    async: false,
+                    //url: "http://192.168.123.24:8084/EduWeb/GetNextInfoServlet?flag=" + flag + "&firstid=" + rfirstid + "&userid=" + userid,
+                    url: "http://59.46.168.82:9090/EduWeb/GetNextInfoServlet?flag=" + flag + "&firstid=" + rfirstid + "&userid=" + userid,
+                    dataType: "jsonp",
+                    jsonp: "callback",
+                    jsonpCallback: "itemsSearchGet",
+                    success: function (json) {
+                        var content = "";
+                        //alert(json['s']);
+                        if (json['s'] == "n") {
+
+                        } else if (json['s'] == "y") {
+                            sizeofnews = json['size'];
+                            for (var i = 0; i < sizeofnews; i++) {
+                                var title = json['titles'][i].title;
+                                var id = json['titles'][i].id;
+                                var titledate = json['titles'][i].n_date;
+                                var thetime = json['titles'][i].n_time;
+                                var theindate = json['titles'][i].n_indate;
+                                var value = flag +";"+ id;
+                                content = content + "<li>";
+                                content = content + "<a href='getOneInfo.html?value="+value+"' data-ajax='false'>";
+                                content = content + "<img src=\"../images/QQ.png\">";
+                                content = content + "<p style='font-size: 14px'>";
+                                content = content + id + ":" + title;
+                                content = content + "</p>";
+                                content = content + "<font style='font-size: 12px; color:gray'>" + titledate + "</font>";
+                                content = content + "</a>";
+                                content = content + "</li>";
+                                if (i == sizeofnews - 1) {
+                                    window.localStorage.setItem("firstId", id);
+                                }
+                            }
+                            $("#thelist").append(content).listview('refresh');
+                        }
+                        myScroll.refresh();
+                    },
+                    error: function () {
+                        alert("fail");
+                    }
+                });
+            });		// Remember to refresh when contents are loaded (ie: on ajax completion)
+        }, 1000);	// <-- Simulate network congestion, remove setTimeout from production!
+    }
+
+
+    function loaded() {
+        pullDownEl = document.getElementById('pullDown');
+        pullDownOffset = pullDownEl.offsetHeight;
+        pullUpEl = document.getElementById('pullUp');
+        pullUpOffset = pullUpEl.offsetHeight;
+
+        myScroll = new iScroll('wrapper', {
+            useTransition: true,
+            topOffset: pullDownOffset,
+            onRefresh: function () {
+                if (pullDownEl.className.match('loading')) {
+                    pullDownEl.className = '';
+                    pullDownEl.querySelector('.pullDownLabel').innerHTML = '下拉刷新';
+                } else if (pullUpEl.className.match('loading')) {
+                    pullUpEl.className = '';
+                    pullUpEl.querySelector('.pullUpLabel').innerHTML = '上拉刷新';
+                }
+            },
+            onScrollMove: function () {
+                if (this.y > 5 && !pullDownEl.className.match('flip')) {
+                    pullDownEl.className = 'flip';
+                    pullDownEl.querySelector('.pullDownLabel').innerHTML = '释放开始刷新';
+                    this.minScrollY = 0;
+                } else if (this.y < 5 && pullDownEl.className.match('flip')) {
+                    pullDownEl.className = '';
+                    pullDownEl.querySelector('.pullDownLabel').innerHTML = '下拉刷新';
+                    this.minScrollY = -pullDownOffset;
+                } else if (this.y < (this.maxScrollY - 5) && !pullUpEl.className.match('flip')) {
+                    pullUpEl.className = 'flip';
+                    pullUpEl.querySelector('.pullUpLabel').innerHTML = '释放开始刷新';
+                    this.maxScrollY = this.maxScrollY;
+                    //this.maxScrollY = this.maxScrollY;
+                } else if (this.y > (this.maxScrollY + 5) && pullUpEl.className.match('flip')) {
+                    pullUpEl.className = '';
+                    pullUpEl.querySelector('.pullUpLabel').innerHTML = '上拉加载更多信息';
+                    this.maxScrollY = pullUpOffset;
+                }
+            },
+            onScrollEnd: function () {
+                if (pullDownEl.className.match('flip')) {
+                    pullDownEl.className = 'loading';
+                    pullDownEl.querySelector('.pullDownLabel').innerHTML = '加载中......';
+                    pullDownAction();	// Execute custom function (ajax call?)
+                } else if (pullUpEl.className.match('flip')) {
+                    pullUpEl.className = 'loading';
+                    pullUpEl.querySelector('.pullUpLabel').innerHTML = '加载中......';
+                    pullUpAction();	// Execute custom function (ajax call?)
+                }
+            }
+        });
+
+        document.getElementById('wrapper').style.left = '0';
+    }
+    document.addEventListener('touchmove', function (e) {
+        e.preventDefault();
+    }, false);
+    document.addEventListener('DOMContentLoaded', function () {
+        setTimeout(loaded, 200);
+    }, false);
+</script>
+<script type="text/javascript" charset=utf-8 src="../js/jquery.mobile-1.4.3.min.js">
+</script>
+<script type="text/javascript" charset=utf-8 src="../js/iscroll.js"></script>
+
+</head>
+<body id="body">
+
+<div data-role="page" id="indexpage">
+    <div id="header" data-role="header">
+        <a href="../info.html" data-ajax="false" data-icon="carat-l" style="height: 20px; background-color: #63BBE3"></a>
+        <font id="name" style="color: #000000"></font>
+    </div>
+    <div id="wrapper">
+        <div id="scroller">
+            <div id="pullDown">
+                <span class="pullDownIcon"></span>
+                <span class="pullDownLabel"></span>
+            </div>
+            <ul data-role="listview" data-icon="false" id="thelist">
+            </ul>
+            <div id="pullUp">
+                <span class="pullUpIcon"></span>
+                <span class="pullUpLabel">上拉刷新......</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer" data-role="footer">
+
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta http-equiv="Content-Type" Content="text/html; charset=utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, minmum-scale=1.0,
+			maxmum-scale=1.0, user-scalable=no" name="viewport" id="viewport"/>
+    <script type="text/javascript" src="../js/cordova.js"></script>
+    <link rel="stylesheet" href="../css/jquery.mobile-1.4.3.min.css"
+          type="text/css"/>
+    <script type="text/javascript" src="../js/jquery-1.8.3.min.js">
+    </script>
+    <script type="text/javascript" src="../js/jquery.mobile-1.4.3.min.js">
+    </script>
+    <script type="text/javascript" src="../js/status.js">
+    </script>
+    <script type="text/javascript" src="../js/timecompare.js">
+    </script>
+</head>
+<style type="text/css">
+ #indexpage{
+     background: url(../images/myedu/bg.gif), repeat;;
+ }
+ #popupBasic{
+     width: 300px;
+     height: 300px;
+ }
+    #text{
+        width: 300px;
+        height: 200px;
+    }
+</style>
+<body onload="getContent()">
+<div data-role="page" id="indexpage">
+    <div data-role="header" style="background-color: #63BBE3" data-position="fixed">
+        <h1 id="biaoti"></h1>
+
+    </div>
+    <div data-role="content">
+        <div>
+            <img id="code">
+        </div>
+        <hr/>
+        <p><b>时间:</b><span id="dateandtime"></span></p>
+        <p><b>地点:</b><span id="place"></span></p>
+        <p><b>座位:</b><span id="seat"></span></p>
+        <hr/>
+        <p><b>姓名:</b><span id="name"></span>&nbsp;&nbsp;<b>学号:</b><span id="no"></span></p>
+        <hr/>
+        <p><b>主办单位:</b><span id="dep"></span></p>
+        <p><b>票号:</b><span id="ticketno"></span></p>
+        <a href="#" data-role="button" id="cancel">取消</a>
+        <a href="#" data-role="button" id="select">选择</a>
+        <a href="#popupBasic" display="none" data-rel="popup" data-role="button" id="chat">互动</a>
+        <div data-role="popup" id="popupBasic">
+            <div data-role="header" style="background-color: #63BBE3"><h1>输入互动内容</h1></div>
+            <a href="#" data-rel="back" data-role="button" data-theme="a" data-icon="delete" data-iconpos="notext" class="ui-btn-right">
+                Close
+            </a>
+            <textarea id="text"></textarea>
+            <input type="button" id="submit" value="提交">
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+<script>
+
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        document.addEventListener("backbutton", onBackKeyDown, false);
+    }
+    function onBackKeyDown() {
+        window.location.href = "mytickets.html";
+    }
+
+    var ticketid;
+    var userid = window.localStorage.getItem("username");
+
+    function getContent() {
+        var paramString = document.location.search;
+        if (paramString == "") {
+            ticketid = null;
+        } else {
+            var reg = /^\?.*value=(.+)/i;
+            reg.exec(paramString);
+            ticketid = RegExp.$1;
+        }
+
+        $.ajax({
+            type: "get",
+            async: false,
+            //url: "http://192.168.123.24:8084/EduWeb/GetActTicketServlet?ticketid=" + ticketid,
+            url: "http://59.46.168.82:9090/EduWeb/GetActTicketServlet?ticketid=" + ticketid,
+            dataType: "jsonp",
+            jsonp: "callback",
+            jsonpCallback: "itemsSearchGet",
+            success: function (json) {
+                var actname = json['actname'];
+                var actdate = json['a_date'];
+                var actdate1 = json['a_date1'];   //date格式
+                var acttime = json['a_time'];
+                var acttime1 = json['a_time1'];
+                var actplace = json['place'];
+                var actseat = json['seat'];
+                var uname = json['name'];
+                var actticketno = json['ticketno'];
+                var actdep = json['dep'];
+
+                $('#biaoti').text(actname);
+                $('#code').attr('src',codeurl+actticketno);
+                $('#dateandtime').text(actdate+" "+acttime);
+                $('#place').text(actplace);
+                $('#seat').text(actseat);
+                $('#name').text(uname);
+                $('#no').text(userid);
+                $('#dep').text(actdep);
+                $('#ticketno').text(actticketno);
+
+                var a = timecompare(CurentTime(), actdate1 +" " + acttime1);
+
+                if(a<0){
+                    $('#cancel').hide();
+                    $('#chat').hide();
+                }
+            },
+            error: function () {
+                alert("fail");
+            }
+        });
+    }
+
+    $('#cancel').click(function (){
+        $.ajax({
+            type: "get",
+            async: false,
+            //url: "http://192.168.123.24:8084/EduWeb/DeleteActTicketServlet?ticketid=" + ticketid,
+            url: "http://59.46.168.82:9090/EduWeb/DeleteActTicketServlet?ticketid=" + ticketid,
+            dataType: "jsonp",
+            jsonp: "callback",
+            jsonpCallback: "itemsSearchGet",
+            success: function (json) {
+               if(json['flag'] == "1"){
+                   alert("取消成功!");
+                   window.location.href="mytickets.html";
+               }else{
+                   alert("取消失败!");
+               }
+            },
+            error: function () {
+                alert("fail");
+            }
+        });
+    });
+
+    $('#submit').click(function (){
+        var text = $("#text").val();
+        if(text == ""){
+            return;
+        }else{
+            $.ajax({
+                type: "get",
+                async: false,
+                //url: "http://192.168.123.24:8084/EduWeb/InterActServlet?ticketid=" + ticketid+"&content="+text,
+                url: "http://59.46.168.82:9090/EduWeb/InterActServlet?ticketid=" + ticketid+"&content="+text,
+                dataType: "jsonp",
+                jsonp: "callback",
+                jsonpCallback: "itemsSearchGet",
+                success: function (json) {
+                    if(json['flag'] == "1"){
+                        alert("发送成功!");
+                        $("#text").val("");
+                    }else{
+                        alert("发送失败!");
+                    }
+                },
+                error: function () {
+                    alert("fail");
+                }
+            });
+        }
+    });
+
+    $('#select').click(function () {
+        window.open("option.html?value="+escape(ticketid));
+    });
+</script>

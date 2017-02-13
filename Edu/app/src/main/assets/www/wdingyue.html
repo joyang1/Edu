@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<script type="text/javascript" charset=utf-8 src="js/cordova.js"></script>
+<link rel="stylesheet" href="css/jquery.mobile-1.4.3.min.css"
+      type="text/css"/>
+<link rel="stylesheet" href="css/iscroll.css"
+      type="text/css"/>
+<script type="text/javascript" charset=utf-8 src="js/jquery-1.8.3.min.js">
+</script>
+<style type="text/css">
+    #indexpage {
+        background: url(images/myedu/bg.gif), repeat;
+    }
+
+    #wrapper {
+        position:absolute; z-index:1;
+        top:83px; bottom:48px; left:-9999px;
+        width:100%;
+        background:#aaa;
+        overflow:auto;
+    }
+
+    .xuanxiang1 {
+        text-align: center;
+    }
+
+    .ui-controlgroup {
+        width: 100% !important;
+        padding: 0;
+        margin: 0;
+    }
+
+    .ui-controlgroup-controls {
+        width: 100%;
+    }
+
+    .xuanxiang a {
+        width: 50% !important;
+        box-sizing: border-box;
+        height: 40px;
+        text-decoration: none;
+    }
+    .xuanxiang a:hover{
+        color: darkblue;
+    }
+
+    .xuanxiang1 a {
+        width: 25% !important;
+        box-sizing: border-box;
+    }
+</style>
+
+<script type="text/javascript">
+var myScroll, pullDownEl, pullDownOffset,
+        pullUpEl, pullUpOffset;
+
+var userid = window.localStorage.getItem("username");
+$(function () {
+    $("#indexpage").bind('pageinit', function () {
+        $.ajax({
+            type: "get",
+            async: false,
+            //url: "http://192.168.123.24:8084/EduWeb/GetAllOrderListServlet?userid="+userid+"&type=1",
+            url: "http://59.46.168.82:9090/EduWeb/GetAllOrderListServlet?userid="+userid+"&type=1",
+            dataType: "jsonp",
+            jsonp: "callback",
+            jsonpCallback: "itemsSearchGet",
+            success: function (json) {
+                var content = "";
+                if (json['s'] == "n") {
+
+                } else if (json['s'] == "y") {
+                    var size = json['size'];
+                    for (var i = 0; i < size; i++) {
+                        var title = json['titles'][i].title;
+                        var id = json['titles'][i].id;
+                        var titledate = json['titles'][i].date;
+                        var value = id +";"+ "1";
+                        content = content + "<li>";
+                        content = content + "<a href='order/getOneOrder.html?value="+value+"' data-ajax='false'>";
+                        content = content + "<img src=\"images/QQ.png\">";
+                        content = content + "<p style='font-size: 14px'>";
+                        content = content + id + ":" + title;
+                        content = content + "</p>";
+                        content = content + "<font style='font-size: 12px; color:gray'>" + titledate + "</font>";
+                        content = content + "</a>";
+                        content = content + "</li>";
+                        if(i==0){
+                            window.localStorage.setItem("lastid",id);
+                        }else if(i == size -1){
+                            window.localStorage.setItem("firstid",id);
+                        }
+                    }
+                }
+                $("#thelist").prepend(content).listview('refresh');
+                myScroll.refresh();
+            },
+            error: function () {
+                alert("fail");
+            }
+        });
+    });
+});
+function pullDownAction() {
+    var lastid = window.localStorage.getItem("lastid");
+    $(function () {
+        $.ajax({
+            type: "get",
+            async: false,
+            //url: "http://192.168.123.24:8084/EduWeb/GetNewOrderServlet?userid=" + userid + "&lastid=" + lastid+"&type=1",
+            url: "http://59.46.168.82:9090/EduWeb/GetNewOrderServlet?userid=" + userid + "&lastid=" + lastid+"&type=1",
+            dataType: "jsonp",
+            jsonp: "callback",
+            jsonpCallback: "itemsSearchGet",
+            success: function (json) {
+                //alert(json['titles'][0].title);
+                var content = "";
+                if (json['s'] == "n") {
+
+                } else if (json['s'] == "y") {
+                    var size = json['size'];
+                    for (var i = 0; i <= size - 1; i++) {
+                        var title = json['titles'][i].title;
+                        var id = json['titles'][i].id;
+                        var titledate = json['titles'][i].date;
+                        var value = id +";"+ "1";
+                        content = content + "<li>";
+                        content = content + "<a href='order/getOneOrder.html?value="+value+"' data-ajax='false'>";
+                        content = content + "<img src=\"images/QQ.png\">";
+                        content = content + "<p style='font-size: 14px'>";
+                        content = content + id + ":" + title + "<font class=\"newtitle\" style='font-size: 12px; color: red'>" + "new" + "</font>";
+                        content = content + "</p>";
+                        content = content + "<font style='font-size: 12px; color:gray'>" + titledate + "</font>";
+                        content = content + "</a>";
+                        content = content + "</li>";
+                        if(i == 0){
+                            window.localStorage.setItem("lastdate",titledate);
+                        }
+                    }
+                }
+                $("#thelist").prepend(content).listview('refresh');
+                myScroll.refresh();
+            },
+            error: function () {
+                alert("fail");
+            }
+        });
+    });
+}
+
+function pullUpAction() {
+    setTimeout(function () {	// <-- Simulate network congestion, remove setTimeout from production!
+        $(function () {
+            var firstid = window.localStorage.getItem("firstid");
+            $.ajax({
+                type: "get",
+                async: false,
+                //url: "http://192.168.123.24:8084/EduWeb/GetNextOrderServlet?userid="+userid+"&firstid=" + firstid +"&type=1",
+                url: "http://59.46.168.82:9090/EduWeb/GetNextOrderServlet?userid="+userid+"&firstid=" + firstid +"&type=1",
+                dataType: "jsonp",
+                jsonp: "callback",
+                jsonpCallback: "itemsSearchGet",
+                success: function (json) {
+                    var content = "";
+                    if (json['s'] == "n") {
+                        content = "";
+                    } else if (json['s'] == "y") {
+                        var size = json['size'];
+                        for (var i = 0; i < size; i++) {
+                            var title = json['titles'][i].title;
+                            var id = json['titles'][i].id;
+                            var titledate = json['titles'][i].date;
+                            var value = id +";"+ "1";
+                            content = content + "<li>";
+                            content = content + "<a href='order/getOneOrder.html?value="+value+"' data-ajax='false'>";
+                            content = content + "<img src=\"images/QQ.png\">";
+                            content = content + "<p style='font-size: 14px'>";
+                            content = content + id + ":" + title;
+                            content = content + "</p>";
+                            content = content + "<font style='font-size: 12px; color:gray'>" + titledate + "</font>";
+                            content = content + "</a>";
+                            content = content + "</li>";
+                            if (i == size - 1) {
+                                window.localStorage.setItem("firstdate", titledate);
+                            }
+                        }
+                    }
+                    $("#thelist").append(content).listview('refresh');
+                    myScroll.refresh();
+                },
+                error: function () {
+                    alert("fail");
+                }
+            });
+        });		// Remember to refresh when contents are loaded (ie: on ajax completion)
+    }, 1000);	// <-- Simulate network congestion, remove setTimeout from production!
+}
+
+function loaded() {
+//                if (myScroll != null) {
+//                    myScroll.destroy();
+//                }
+    pullDownEl = document.getElementById('pullDown');
+    pullDownOffset = pullDownEl.offsetHeight;
+    pullUpEl = document.getElementById('pullUp');
+    pullUpOffset = pullUpEl.offsetHeight;
+
+    myScroll = new iScroll('wrapper', {
+        useTransition: true,
+        topOffset: pullDownOffset,
+        onRefresh: function () {
+            if (pullDownEl.className.match('loading')) {
+                pullDownEl.className = '';
+                pullDownEl.querySelector('.pullDownLabel').innerHTML = '下拉刷新';
+            } else if (pullUpEl.className.match('loading')) {
+                pullUpEl.className = '';
+                pullUpEl.querySelector('.pullUpLabel').innerHTML = '上拉刷新';
+            }
+        },
+        onScrollMove: function () {
+            if (this.y > 5 && !pullDownEl.className.match('flip')) {
+                pullDownEl.className = 'flip';
+                pullDownEl.querySelector('.pullDownLabel').innerHTML = '释放开始刷新';
+                this.minScrollY = 0;
+            } else if (this.y < 5 && pullDownEl.className.match('flip')) {
+                pullDownEl.className = '';
+                pullDownEl.querySelector('.pullDownLabel').innerHTML = '下拉刷新';
+                this.minScrollY = -pullDownOffset;
+            } else if (this.y < (this.maxScrollY - 5) && !pullUpEl.className.match('flip')) {
+                pullUpEl.className = 'flip';
+                pullUpEl.querySelector('.pullUpLabel').innerHTML = '释放开始刷新';
+                this.maxScrollY = this.maxScrollY;
+                //this.maxScrollY = this.maxScrollY;
+            } else if (this.y > (this.maxScrollY + 5) && pullUpEl.className.match('flip')) {
+                pullUpEl.className = '';
+                pullUpEl.querySelector('.pullUpLabel').innerHTML = '上拉加载更多信息';
+                this.maxScrollY = pullUpOffset;
+            }
+        },
+        onScrollEnd: function () {
+            if (pullDownEl.className.match('flip')) {
+                pullDownEl.className = 'loading';
+                pullDownEl.querySelector('.pullDownLabel').innerHTML = '加载中......';
+                pullDownAction();	// Execute custom function (ajax call?)
+            } else if (pullUpEl.className.match('flip')) {
+                pullUpEl.className = 'loading';
+                pullUpEl.querySelector('.pullUpLabel').innerHTML = '加载中......';
+                pullUpAction();	// Execute custom function (ajax call?)
+            }
+        }
+    });
+
+    document.getElementById('wrapper').style.left = '0';
+}
+document.addEventListener('touchmove', function (e) {
+    e.preventDefault();
+}, false);
+document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(loaded, 200);
+}, false);
+</script>
+<script type="text/javascript" charset=utf-8 src="js/jquery.mobile-1.4.3.min.js">
+</script>
+<script type="text/javascript" charset=utf-8 src="js/iscroll.js"></script>
+<script type="text/javascript" charset=utf-8 src="js/check.js"></script>
+
+</head>
+<body id="body" onload="checkLogin()">
+
+<div data-role="page" id="indexpage">
+    <div data-role="header" data-position="fixed">
+        <div class="xuanxiang">
+            <div data-role="controlgroup" data-type="horizontal">
+                <a href="dingyue.html" data-ajax="false" data-role="button"
+                   style="background: url(images/dingyue/ndingyue1.png)"></a>
+                <a href="wdingyue.html" data-ajax="false" data-role="button"
+                   style="background: url(images/dingyue/wdingyue0.png)"
+                   data-transtiton="slide" direction="reverse"></a>
+                <span id="networkInfo" style="color: red"></span>
+                <a href="#" data-role="button"  id="gz_button" style="width:100% !important;"><font id="gz" style="font-size: 16px; margin-left: 20px">关注设置</font></a><br/><br/>
+            </div>
+
+        </div>
+
+    </div>
+    <div id="wrapper">
+        <div id="scroller">
+            <div id="pullDown">
+                <span class="pullDownIcon"></span>
+                <span class="pullDownLabel">下拉刷新......</span>
+            </div>
+            <ul data-role="listview" data-icon="false" id="thelist">
+            </ul>
+            <div id="pullUp">
+                <span class="pullUpIcon"></span>
+                <span class="pullUpLabel">上拉刷新</span>
+            </div>
+        </div>
+    </div>
+
+    <div data-role="footer" data-position="fixed">
+        <div class="xuanxiang1">
+            <div data-role="controlgroup" data-type="horizontal">
+                <a href="index.html" data-ajax="false" data-role="button"
+                   data-iconpos="top"><img src="images/zuixin1.png">
+
+                    <p style="line-height:0px; color:#8499A1">最新</p></a>
+                <a href="dingyue.html" data-ajax="false" data-role="button"
+                   data-iconpos="top" data-transtiton="flip" direction="reverse"><img src="images/dingyue0.png">
+
+                    <p style="line-height:0px; color:#1d50a2">订阅</p></a>
+                <a href="xiaoyuanfuwu.html" data-ajax="false" data-role="button"
+                   data-iconpos="top"><img src="images/fuwu1.png">
+
+                    <p style="line-height:0px; color:#8499A1">服务</p></a>
+                <a href="myEdu.html" data-ajax="false" data-role="button"
+                   data-iconpos="top"><img src="images/me1.png">
+
+                    <p style="line-height:0px; color:#8499A1">我</p></a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<script>
+    $('#gz_button').click(function (){
+        window.location.href="order/worderfamily.html";
+    });
+
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        document.addEventListener("backbutton", onBackKeyDown, false);
+    }
+    function onBackKeyDown() {
+        navigator.app.exitApp();
+    }
+</script>

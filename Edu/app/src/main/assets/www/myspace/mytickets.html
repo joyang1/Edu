@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta http-equiv="Content-Type" Content="text/html; charset=utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, minmum-scale=1.0,
+			maxmum-scale=1.0, user-scalable=no" name="viewport" id="viewport"/>
+    <script type="text/javascript" src="../js/cordova.js"></script>
+    <link rel="stylesheet" href="../css/jquery.mobile-1.4.3.min.css"
+          type="text/css"/>
+    <script type="text/javascript" src="../js/jquery-1.8.3.min.js">
+    </script>
+    <script type="text/javascript" src="../js/jquery.mobile-1.4.3.min.js">
+    </script>
+    <script type="text/javascript" src="../js/status.js">
+    </script>
+</head>
+<style type="text/css">
+
+</style>
+<body onload="getContent()">
+<div data-role="page">
+    <div data-role="header" style="background-color: #63BBE3" data-position="fixed">
+        <h1>我的电子票</h1>
+    </div>
+    <div data-role="content">
+        <ul data-role="listview"  id="thelist">
+        </ul>
+        <br/>
+        <a data-role="button" id="jiazai">加载更多</a>
+    </div>
+    <div data-role="footer" data-position="fixed">
+        <div style="background-color: #2e3132; height: 40px;" >
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+<script>
+
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        document.addEventListener("backbutton", onBackKeyDown, false);
+    }
+    function onBackKeyDown() {
+        window.location.href = "../myspace.html";
+    }
+    var userid = window.localStorage.getItem("username");
+    function getContent() {
+        $.ajax({
+            type: "get",
+            async: false,
+            //url: "http://192.168.123.24:8084/EduWeb/GetAllTicketsServlet?userid="+userid,
+            url: "http://59.46.168.82:9090/EduWeb/GetAllTicketsServlet?userid="+userid,
+            dataType: "jsonp",
+            jsonp: "callback",
+            jsonpCallback: "itemsSearchGet",
+            success: function (json) {
+                var content = "";
+                if(json['s']=="n"){
+
+                }else if(json['s'] == "y"){
+                    var sizeofticktes = json['size'];
+                    for(var i=0; i<sizeofticktes; i++){
+                        var ticketid = json['titles'][i].id;
+                        var title = json['titles'][i].title;
+                        var a_date = json['titles'][i].a_date;
+                        var a_time = json['titles'][i].a_time;
+                        var ticketno = json['titles'][i].ticketno;
+                        content = content + "<li>";
+                        content = content + "<a href='#' onclick='openWindowWithValue("+ticketid+")'>";
+                        content = content + "<img src="+codeurl+ticketno+">";
+                        content = content + "<p style='font-size: 14px'>";
+                        content = content + ticketid + ":" + title;
+                        content = content + "</p>";
+                        content = content + "<font style='font-size: 12px; color:gray'>" + a_date+a_time + "</font>";
+                        content = content + "</a>";
+                        content = content + "</li>";
+                        if(i==sizeofticktes-1){
+                            window.localStorage.setItem("actfirstid",ticketid);
+                        }
+                    }
+                }
+                $("#thelist").prepend(content).listview('refresh');
+            },
+            error: function () {
+                alert("fail");
+            }
+        });
+    }
+
+    $('#jiazai').click(function () {
+        var actfirstid = window.localStorage.getItem("actfirstid");
+        $('#jiazai').text('加载中......');
+        $.ajax({
+            type: "get",
+            async: false,
+            url: "http://192.168.123.24:8084/EduWeb/GetNextTicketServlet?userid="+userid+"&firstid="+actfirstid,
+            //url: "http://59.46.168.82:9090/EduWeb/GetNextTicketServlet?userid="+userid+"&firstid="+actfirstid,
+            dataType: "jsonp",
+            jsonp: "callback",
+            jsonpCallback: "itemsSearchGet",
+            success: function (json) {
+                var content = "";
+                if(json['s']=="n"){
+
+                }else if(json['s'] == "y"){
+                    var sizeofticktes = json['size'];
+                    for(var i=0; i<sizeofticktes; i++){
+                        var ticketid = json['titles'][i].id;
+                        var title = json['titles'][i].title;
+                        var a_date = json['titles'][i].a_date;
+                        var a_time = json['titles'][i].a_time;
+                        var ticketno = json['titles'][i].ticketno;
+                        content = content + "<li>";
+                        content = content + "<a href='#' onclick='openWindowWithValue("+ticketid+")'>";
+                        content = content + "<img src="+codeurl+ticketno+">";
+                        content = content + "<p style='font-size: 14px'>";
+                        content = content + ticketid + ":" + title;
+                        content = content + "</p>";
+                        content = content + "<font style='font-size: 12px; color:gray'>" + a_date+a_time + "</font>";
+                        content = content + "</a>";
+                        content = content + "</li>";
+                        if(i==sizeofticktes-1){
+                            window.localStorage.setItem("actfirstid",ticketid);
+                        }
+                    }
+                }
+                $("#thelist").append(content).listview('refresh');
+                $('#jiazai').text('加载更多');
+            },
+            error: function () {
+                alert("fail");
+            }
+        });
+    });
+
+    function openWindowWithValue(id){
+        window.open("oneticket.html?value="+escape(id));
+    }
+</script>

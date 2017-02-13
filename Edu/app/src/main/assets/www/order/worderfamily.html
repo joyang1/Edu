@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" Content="text/html; charset=utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, minmum-scale=1.0,
+			maxmum-scale=1.0, user-scalable=no" name="viewport" id="viewport" />
+    <link rel="stylesheet" href="../css/jquery.mobile-1.4.3.min.css"
+          type="text/css" />
+    <script type="text/javascript" src="../js/cordova.js">
+    </script>
+    <script type="text/javascript" src="../js/jquery-1.8.3.min.js">
+    </script>
+    <script type="text/javascript" src="../js/jquery.mobile-1.4.3.min.js">
+    </script>
+    <title></title>
+    <style type="text/css">
+        body{
+            background: url(../images/myedu/bg.gif), repeat;
+        }
+    </style>
+</head>
+<body>
+<div data-role="page">
+    <div data-role="header" data-position="fixed" style="height: 42px; background-color: #63BBE3">
+        <h1>校外关注</h1>
+    </div>
+    <div data-role="content">
+        <ul data-role="listview" data-inset="true">
+            <li>
+                <a href="orderdeplist.html?value=2;1" data-ajax="false">
+                    <p>校外机构</p>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+</body>
+</html>
+<script>
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        document.addEventListener("backbutton", eventBackButton, false); //返回键
+//            document.addEventListener("menubutton", eventMenuButton, false); //菜单键
+    }
+    function eventBackButton() {
+        window.location.href="../wdingyue.html";
+    }
+</script>

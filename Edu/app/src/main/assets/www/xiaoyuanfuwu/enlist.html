@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<script type="text/javascript" charset=utf-8 src="../js/cordova.js"></script>
+<link rel="stylesheet" href="../css/jquery.mobile-1.4.3.min.css"
+      type="text/css"/>
+<link rel="stylesheet" href="../css/iscroll.css"
+      type="text/css"/>
+<script type="text/javascript" charset=utf-8 src="../js/jquery-1.8.3.min.js">
+</script>
+<style type="text/css">
+    #indexpage {
+        background: url(../images/myedu/bg.gif), repeat;
+    }
+
+    .xuanxiang1 {
+        text-align: center;
+    }
+
+    .ui-controlgroup {
+        width: 100% !important;
+        padding: 0;
+        margin: 0;
+    }
+
+    .ui-controlgroup-controls {
+        width: 100%;
+    }
+
+    .xuanxiang a {
+        width: 50% !important;
+        box-sizing: border-box;
+        height: 40px;
+        text-decoration: none;
+    }
+    .xuanxiang a:hover{
+        color: darkblue;
+    }
+
+    .xuanxiang1 a {
+        width: 25% !important;
+        box-sizing: border-box;
+    }
+</style>
+
+<script type="text/javascript">
+    var myScroll, pullDownEl, pullDownOffset,
+            pullUpEl, pullUpOffset;
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        document.addEventListener("backbutton", onBackKeyDown, false);
+    }
+    function onBackKeyDown() {
+        window.location.href = "../xiaoyuanfuwu.html";
+    }
+
+    $(function () {
+        $("#indexpage").bind('pageinit', function () {
+            $(function () {
+                $.ajax({
+                    type: "get",
+                    async: false,
+                    //url: "http://192.168.123.24:8084/EduWeb/GetActTitleServlet",
+                    url: "http://59.46.168.82:9090/EduWeb/GetActTitleServlet",
+                    dataType: "jsonp",
+                    jsonp: "callback",
+                    jsonpCallback: "itemsSearchGet",
+                    success: function (json) {
+                        //alert(json['titles'][0].title);
+                        var content = "";
+                        if (json['s'] == "n") {
+
+                        } else if (json['s'] == "y") {
+                            var sizeofact = json['size'];
+                            if(sizeofact>10){
+                                sizeofact=10;
+                            }
+                            for (var i = 0; i <sizeofact; i++) {
+                                var id = json['titles'][i].id;
+                                var title = json['titles'][i].title;
+                                var titledate = json['titles'][i].a_date;
+                                content = content + "<li>";
+                                content = content + "<a href='#' onclick='openWindowWithValue("+id+")'>";
+                                //content = content + "<img src=\"../images/QQ.png\">";
+                                content = content + "<p style='font-size: 14px'>";
+                                content = content + id + ":" + title;
+                                content = content + "</p>";
+                                content = content + "<font style='font-size: 12px; color:gray'>" + titledate + "</font>";
+                                content = content + "</a>";
+                                content = content + "</li>";
+                                if(i==0){
+                                    window.localStorage.setItem("actlastid",id);
+                                }
+                                if(i==sizeofact-1){
+                                    window.localStorage.setItem("actfirstid",id);
+                                }
+                            }
+                        }
+                        $("#thelist").prepend(content).listview('refresh');
+                        myScroll.refresh();
+                    },
+                    error: function () {
+                        alert("fail");
+                    }
+                });
+            });
+        });
+    });
+
+    function pullDownAction() {
+        var actlastid = window.localStorage.getItem("actlastid");
+        $(function () {
+            $.ajax({
+                type: "get",
+                async: false,
+                //url: "http://192.168.123.24:8084/EduWeb/GetAllActServlet?lastid=" + actlastid,
+                url: "http://59.46.168.82:9090/EduWeb/GetAllActServlet?lastid=" + actlastid,
+                dataType: "jsonp",
+                jsonp: "callback",
+                jsonpCallback: "itemsSearchGet",
+                success: function (json) {
+                    //alert(json['s']);
+                    var content = "";
+                    if (json['s'] == "n") {
+
+                    } else if (json['s'] == "y") {
+                        for (var i = 0; i <json['size']; i++) {
+                            var id = json['titles'][i].id;
+                            var title = json['titles'][i].title;
+                            var titledate = json['titles'][i].a_date;
+                            content = content + "<li>";
+                            content = content + "<a href='#' onclick='openWindowWithValue("+id+")'>";
+                            content = content + "<p style='font-size: 14px'>";
+                            content = content + id + ":" + title;
+                            content = content + "</p>";
+                            content = content + "<font style='font-size: 12px; color:gray'>" + titledate + "</font>";
+                            content = content + "</a>";
+                            content = content + "</li>";
+                            if(i==0){
+                                window.localStorage.setItem("actlastid",id);
+                            }
+                        }
+                    }
+                    $("#thelist").prepend(content).listview('refresh');
+                    myScroll.refresh();
+                },
+                error: function () {
+                    alert("fail");
+                }
+            });
+       });
+    }
+
+    function pullUpAction() {
+        var actfirstid = window.localStorage.getItem("actfirstid");
+        //alert(actfirstid);
+        setTimeout(function () {	// <-- Simulate network congestion, remove setTimeout from production!
+            $(function () {
+                $.ajax({
+                    type: "get",
+                    async: false,
+                    //url: "http://192.168.123.24:8084/EduWeb/GetNextActServlet?firstid=" + actfirstid,
+                    url: "http://59.46.168.82:9090/EduWeb/GetNextActServlet?firstid=" + actfirstid,
+                    dataType: "jsonp",
+                    jsonp: "callback",
+                    jsonpCallback: "itemsSearchGet",
+                    success: function (json) {
+                        var content = "";
+                        if (json['s'] == "n") {
+
+                        } else if (json['s'] == "y") {
+                            for (var i = 0; i <json['size']; i++) {
+                                var id = json['titles'][i].id;
+                                var title = json['titles'][i].title;
+                                var titledate = json['titles'][i].a_date;
+                                content = content + "<li>";
+                                content = content + "<a href='#' onclick='openWindowWithValue("+id+")'>";
+                                content = content + "<p style='font-size: 14px'>";
+                                content = content + id + ":" + title;
+                                content = content + "</p>";
+                                content = content + "<font style='font-size: 12px; color:gray'>" + titledate + "</font>";
+                                content = content + "</a>";
+                                content = content + "</li>";
+                                if(i==json['size']-1){
+                                    window.localStorage.setItem("actfirstid",id);
+                                }
+                            }
+                        }
+                        $("#thelist").append(content).listview('refresh');
+                        myScroll.refresh();
+                    },
+                    error: function () {
+                        alert("fail");
+                    }
+                });
+            });		// Remember to refresh when contents are loaded (ie: on ajax completion)
+        }, 1000);	// <-- Simulate network congestion, remove setTimeout from production!
+    }
+
+    function loaded() {
+//                if (myScroll != null) {
+//                    myScroll.destroy();
+//                }
+        pullDownEl = document.getElementById('pullDown');
+        pullDownOffset = pullDownEl.offsetHeight;
+        pullUpEl = document.getElementById('pullUp');
+        pullUpOffset = pullUpEl.offsetHeight;
+
+        myScroll = new iScroll('wrapper', {
+            useTransition: true,
+            topOffset: pullDownOffset,
+            onRefresh: function () {
+                if (pullDownEl.className.match('loading')) {
+                    pullDownEl.className = '';
+                    pullDownEl.querySelector('.pullDownLabel').innerHTML = '下拉刷新';
+                } else if (pullUpEl.className.match('loading')) {
+                    pullUpEl.className = '';
+                    pullUpEl.querySelector('.pullUpLabel').innerHTML = '上拉刷新';
+                }
+            },
+            onScrollMove: function () {
+                if (this.y > 5 && !pullDownEl.className.match('flip')) {
+                    pullDownEl.className = 'flip';
+                    pullDownEl.querySelector('.pullDownLabel').innerHTML = '释放开始刷新';
+                    this.minScrollY = 0;
+                } else if (this.y < 5 && pullDownEl.className.match('flip')) {
+                    pullDownEl.className = '';
+                    pullDownEl.querySelector('.pullDownLabel').innerHTML = '下拉刷新';
+                    this.minScrollY = -pullDownOffset;
+                } else if (this.y < (this.maxScrollY - 5) && !pullUpEl.className.match('flip')) {
+                    pullUpEl.className = 'flip';
+                    pullUpEl.querySelector('.pullUpLabel').innerHTML = '释放开始刷新';
+                    this.maxScrollY = this.maxScrollY;
+                    //this.maxScrollY = this.maxScrollY;
+                } else if (this.y > (this.maxScrollY + 5) && pullUpEl.className.match('flip')) {
+                    pullUpEl.className = '';
+                    pullUpEl.querySelector('.pullUpLabel').innerHTML = '上拉加载更多信息';
+                    this.maxScrollY = pullUpOffset;
+                }
+            },
+            onScrollEnd: function () {
+                if (pullDownEl.className.match('flip')) {
+                    pullDownEl.className = 'loading';
+                    pullDownEl.querySelector('.pullDownLabel').innerHTML = '加载中......';
+                    pullDownAction();	// Execute custom function (ajax call?)
+                } else if (pullUpEl.className.match('flip')) {
+                    pullUpEl.className = 'loading';
+                    pullUpEl.querySelector('.pullUpLabel').innerHTML = '加载中......';
+                    pullUpAction();	// Execute custom function (ajax call?)
+                }
+            }
+        });
+
+        document.getElementById('wrapper').style.left = '0';
+    }
+    document.addEventListener('touchmove', function (e) {
+        e.preventDefault();
+    }, false);
+    document.addEventListener('DOMContentLoaded', function () {
+        setTimeout(loaded, 200);
+    }, false);
+
+    function openWindowWithValue(id){
+        window.open("getTicket.html?value="+escape(id));
+    }
+</script>
+<script type="text/javascript" charset=utf-8 src="../js/jquery.mobile-1.4.3.min.js">
+</script>
+<script type="text/javascript" charset=utf-8 src="../js/iscroll.js"></script>
+
+</head>
+<body id="body">
+
+<div data-role="page" id="indexpage">
+    <div data-role="header" data-position="fixed">
+        <div class="xuanxiang">
+            <div data-role="controlgroup" data-type="horizontal">
+                <a href="#" data-role="button"  style="width:100% !important; background-color: #63BBE3"><font style="font-size: 16px;">活动列表</font></a><br/><br/>
+            </div>
+
+        </div>
+
+    </div>
+    <div id="wrapper">
+        <div id="scroller">
+            <div id="pullDown">
+                <span class="pullDownIcon"></span>
+                <span class="pullDownLabel">下拉刷新......</span>
+            </div>
+            <ul data-role="listview"  id="thelist">
+            </ul>
+            <div id="pullUp">
+                <span class="pullUpIcon"></span>
+                <span class="pullUpLabel">上拉刷新......</span>
+            </div>
+        </div>
+    </div>
+    <div data-role="footer" id="footer">
+    </div>
+</div>
+</body>
+</html>

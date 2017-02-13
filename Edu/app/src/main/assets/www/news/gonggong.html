@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<script type="text/javascript" charset=utf-8 src="../js/cordova.js"></script>
+<link rel="stylesheet" href="../css/jquery.mobile-1.4.3.min.css"
+      type="text/css"/>
+<link rel="stylesheet" href="../css/iscroll.css"
+      type="text/css"/>
+<script type="text/javascript" charset=utf-8 src="../js/jquery-1.8.3.min.js">
+</script>
+<script type="text/javascript" charset=utf-8 src="../js/SqlHelper.js">
+</script>
+<style>
+    .newtitle {
+        float: right;
+    }
+    .ui-icon-myback{
+        background-image: url(../images/myedu/back.png)
+    }
+</style>
+<script type="text/javascript">
+
+var depid;
+var myScroll, pullDownEl, pullDownOffset,
+        pullUpEl, pullUpOffset;
+var titles = new Array();
+var ids = new Array();
+var titledates = new Array();
+var lastid; //本地最新的新闻的id
+var firstid; //本地最旧的新闻的id
+//var flag = window.localStorage.getItem("flag");
+var sizeofnews;
+var depname;
+document.addEventListener("deviceready", onDeviceReady, false);
+function onDeviceReady() {
+    document.addEventListener("backbutton", onBackKeyDown, false);
+}
+function onBackKeyDown() {
+    window.location.href = "../index.html";
+}
+
+//var myDb;
+createDb("mydb", "1.0", "edu", 3 * 1024 * 1024);
+myDb.transaction(createTable1, onTxError, onTxSuccess);
+$(function () {
+    $("#indexpage").bind('pageinit', function () {
+        var paramString = document.location.search;
+        if (paramString == "") {
+            depid = null;
+        } else {
+            var reg = /^\?.*value=(.+)/i;
+            reg.exec(paramString);
+            depid = RegExp.$1;
+        }
+        myDb.transaction(openView, onTxError, onTxSuccess);
+        myDb.transaction(getLastNews, onTxError, onTxSuccess);
+        myDb.transaction(getFirstNews, onTxError, onTxSuccess);
+        myDb.transaction(getLengthofNews, onTxError, onTxSuccess);
+        //pullDownAction();
+    });
+});
+function pullDownAction() {
+    $(function () {
+        //alert(lastid+depid);
+        $.ajax({
+            type: "get",
+            async: false,
+            //url: "http://192.168.123.24:8084/EduWeb/GetAllNewsServlet?depid=" + depid + "&lastid=" + lastid,
+            url: "http://59.46.168.82:9090/EduWeb/GetAllNewsServlet?depid=" + depid + "&lastid=" + lastid,
+            dataType: "jsonp",
+            jsonp: "callback",
+            jsonpCallback: "itemsSearchGet",
+            success: function (json) {
+                //alert(json['titles'][0].title);
+                var content = "";
+                if (json['s'] == "n") {
+
+                } else if (json['s'] == "y") {
+                    sizeofnews = json['size'];
+                    depname = json['depname'];
+                    for (var i = sizeofnews - 1; i >= 0; i--) {
+                        var title = json['titles'][i].title;
+                        var id = json['titles'][i].id;
+                        var titledate = json['titles'][i].a_date;
+                        ids[i] = id;
+                        titles[i] = title;
+                        titledates[i] = titledate;
+                        var value = depid +";"+ id;
+                        content = content + "<li>";
+                        content = content + "<a href='getOneNews.html?value="+value+"' data-ajax='false'>";
+                        content = content + "<img src=\"../images/QQ.png\">";
+                        content = content + "<p style='font-size: 14px'>";
+                        content = content + id + ":" + title + "<font class=\"newtitle\" style='font-size: 12px; color: red'>" + "new" + "</font>";
+                        content = content + "</p>";
+                        content = content + "<font style='font-size: 12px; color:gray'>" + titledate + "</font>";
+                        content = content + "</a>";
+                        content = content + "</li>";
+                    }
+                    myDb.transaction(insertRecord, onTxError, onTxSuccess);
+                    myDb.transaction(getLastNews, onTxError, onTxSuccess);
+                }
+                $("#thelist").prepend(content).listview('refresh');
+                myScroll.refresh();
+            },
+            error: function () {
+                //alert("fail");
+            }
+        });
+    });
+}
+
+function pullUpAction() {
+    setTimeout(function () {	// <-- Simulate network congestion, remove setTimeout from production!
+        $(function () {
+            var rfirstid = window.localStorage.getItem("firstId");
+            $.ajax({
+                type: "get",
+                async: false,
+                //url: "http://192.168.123.24:8084/EduWeb/getNextNewsServlet?depid=" + depid + "&firstid=" + rfirstid,
+                url: "http://59.46.168.82:9090/EduWeb/getNextNewsServlet?depid="+depid+"&firstid=" + rfirstid,
+                dataType: "jsonp",
+                jsonp: "callback",
+                jsonpCallback: "itemsSearchGet",
+                success: function (json) {
+                    var content = "";
+                    if (json['s'] == "n") {
+                        content = "";
+                    } else if (json['s'] == "y") {
+                        sizeofnews = json['size'];
+                        for (var i = 0; i < sizeofnews; i++) {
+                            var title = json['titles'][i].title;
+                            var id = json['titles'][i].id;
+                            var titledate = json['titles'][i].a_date;
+                            var value = depid +";"+ id;
+                            content = content + "<li>";
+                            content = content + "<a href='getOneNews.html?value="+value+"' data-ajax='false'>";
+                            content = content + "<img src=\"../images/QQ.png\">";
+                            content = content + "<p style='font-size: 14px'>";
+                            content = content + id + ":" + title;
+                            content = content + "</p>";
+                            content = content + "<font style='font-size: 12px; color:gray'>" + titledate + "</font>";
+                            content = content + "</a>";
+                            content = content + "</li>";
+                            if (i == sizeofnews - 1) {
+                                window.localStorage.setItem("firstId", id);
+                            }
+                        }
+                        $("#thelist").append(content).listview('refresh');
+                    }
+
+                    myScroll.refresh();
+                },
+                error: function () {
+                    //alert("fail");
+                }
+            });
+        });		// Remember to refresh when contents are loaded (ie: on ajax completion)
+    }, 1000);	// <-- Simulate network congestion, remove setTimeout from production!
+}
+
+function loaded() {
+//                if (myScroll != null) {
+//                    myScroll.destroy();
+//                }
+    pullDownEl = document.getElementById('pullDown');
+    pullDownOffset = pullDownEl.offsetHeight;
+    pullUpEl = document.getElementById('pullUp');
+    pullUpOffset = pullUpEl.offsetHeight;
+
+    myScroll = new iScroll('wrapper', {
+        useTransition: true,
+        topOffset: pullDownOffset,
+        onRefresh: function () {
+            if (pullDownEl.className.match('loading')) {
+                pullDownEl.className = '';
+                pullDownEl.querySelector('.pullDownLabel').innerHTML = '下拉刷新';
+            } else if (pullUpEl.className.match('loading')) {
+                pullUpEl.className = '';
+                pullUpEl.querySelector('.pullUpLabel').innerHTML = '上拉刷新';
+            }
+        },
+        onScrollMove: function () {
+            if (this.y > 5 && !pullDownEl.className.match('flip')) {
+                pullDownEl.className = 'flip';
+                pullDownEl.querySelector('.pullDownLabel').innerHTML = '释放开始刷新';
+                this.minScrollY = 0;
+            } else if (this.y < 5 && pullDownEl.className.match('flip')) {
+                pullDownEl.className = '';
+                pullDownEl.querySelector('.pullDownLabel').innerHTML = '下拉刷新';
+                this.minScrollY = -pullDownOffset;
+            } else if (this.y < (this.maxScrollY - 5) && !pullUpEl.className.match('flip')) {
+                pullUpEl.className = 'flip';
+                pullUpEl.querySelector('.pullUpLabel').innerHTML = '释放开始刷新';
+                this.maxScrollY = this.maxScrollY;
+                //this.maxScrollY = this.maxScrollY;
+            } else if (this.y > (this.maxScrollY + 5) && pullUpEl.className.match('flip')) {
+                pullUpEl.className = '';
+                pullUpEl.querySelector('.pullUpLabel').innerHTML = '上拉加载更多信息';
+                this.maxScrollY = pullUpOffset;
+            }
+        },
+        onScrollEnd: function () {
+            if (pullDownEl.className.match('flip')) {
+                pullDownEl.className = 'loading';
+                pullDownEl.querySelector('.pullDownLabel').innerHTML = '加载中......';
+                pullDownAction();	// Execute custom function (ajax call?)
+            } else if (pullUpEl.className.match('flip')) {
+                pullUpEl.className = 'loading';
+                pullUpEl.querySelector('.pullUpLabel').innerHTML = '加载中......';
+                pullUpAction();	// Execute custom function (ajax call?)
+            }
+        }
+    });
+
+    document.getElementById('wrapper').style.left = '0';
+}
+document.addEventListener('touchmove', function (e) {
+    e.preventDefault();
+}, false);
+document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(loaded, 200);
+}, false);
+</script>
+<script type="text/javascript" charset=utf-8 src="../js/jquery.mobile-1.4.3.min.js">
+</script>
+<script type="text/javascript" charset=utf-8 src="../js/iscroll.js"></script>
+
+</head>
+<body id="body">
+
+<div data-role="page" id="indexpage">
+    <div id="header" data-role="header">
+        <a href="../index.html" data-ajax="false" data-shadow="false" data-icon="carat-l" style="height: 20px; background-color: #63BBE3"></a>
+        <font style="color: #000000">新闻列表</font>
+    </div>
+    <div id="wrapper">
+        <div id="scroller">
+            <div id="pullDown">
+                <span class="pullDownIcon"></span>
+                <span class="pullDownLabel">下拉刷新</span>
+            </div>
+            <ul data-role="listview" data-icon="false" id="thelist">
+            </ul>
+            <div id="pullUp">
+                <span class="pullUpIcon"></span>
+                <span class="pullUpLabel">上拉刷新</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer" data-role="footer">
+
+    </div>
+</div>
+</body>
+</html>

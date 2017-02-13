@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta http-equiv="Content-Type" Content="text/html; charset=utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, minmum-scale=1.0,
+			maxmum-scale=1.0, user-scalable=no" name="viewport" id="viewport"/>
+    <script type="text/javascript" src="../js/cordova.js"></script>
+    <link rel="stylesheet" href="../css/jquery.mobile-1.4.3.min.css"
+          type="text/css"/>
+    <link rel="stylesheet" href="../css/iscroll.css"
+          type="text/css"/>
+    <script type="text/javascript" src="../js/jquery-1.8.3.min.js">
+    </script>
+    <script type="text/javascript" src="../js/jquery.mobile-1.4.3.min.js">
+    </script>
+    <title></title>
+</head>
+<body onload="getContent()">
+<div data-role="page">
+    <div data-role="header" id="header">
+        <div class="xuanxiang">
+            <span id="userid" style="color: #000000"></span>
+        </div>
+    </div>
+    <span id="networkInfo" style="color: red"></span>
+    <br/><br/><br/>
+    <div data-role="content">
+        <ul data-role="listview" data-inset="true" id="thelist">
+        </ul>
+    </div>
+</div>
+</body>
+</html>
+
+<script>
+    var userright = window.localStorage.getItem("userright");
+    var userno = window.localStorage.getItem("username");
+
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        document.addEventListener("backbutton", eventBackButton, false); //返回键
+    }
+    function eventBackButton() {
+        window.location.href="../myEdu.html"
+    }
+    function isOffline() {
+        //alert("offline");
+        $('#networkInfo').prepend("网络连接错误，请重新连接!");
+        //myDb.transaction(openIndexView, onTxError, onTxSuccess);
+    }
+    function isOnline() {
+        //alert("online");
+    }
+
+    function getContent() {
+        document.addEventListener("online", isOnline, false); //网络在线
+        document.addEventListener("offline", isOffline, false); //网络不在线
+        $.ajax({
+            type: "get",
+            async: false,
+            //url: "http://192.168.123.24:8084/EduWeb/OwnInfoServlet?userid=" + userid,
+            url: "http://59.46.168.82:9090/EduWeb/OwnInfoServlet?userid=" + userno,
+            dataType: "jsonp",
+            jsonp: "callback",
+            jsonpCallback: "itemsSearchGet",
+            success: function (json) {
+                var content = "";
+                var userid = json['userid'];
+                var userbirth = json['userbirth'];
+                var usertype = json['usertype'];
+                var name = json['name'];
+                var usersex = json['usersex'];
+                var userclass = json['userclass'];
+
+                if(usertype=="1"){
+                    usertype="学生";
+                }else if(usertype=="0"){
+                    usertype="老师";
+                }
+                content = content + "<li>";
+                content = content + "<a href='#'>";
+                content = content + "<p style='font-size: 14px'>";
+                content = content + "昵称:" + userid;
+                content = content + "</p>";
+                content = content + "</a>";
+                content = content + "</li>";
+
+                content = content + "<li>";
+                content = content + "<a href='#'>";
+                content = content + "<p style='font-size: 14px'>";
+                content = content + "学号:" + userno;
+                content = content + "</p>";
+                content = content + "</a>";
+                content = content + "</li>";
+
+                content = content + "<li>";
+                content = content + "<a href='#'>";
+                content = content + "<p style='font-size: 14px'>";
+                content = content + "姓名" + ":" + name;
+                content = content + "</p>";
+                content = content + "</a>";
+                content = content + "</li>";
+
+                content = content + "<li>";
+                content = content + "<a href='#'>";
+                content = content + "<p style='font-size: 14px'>";
+                content = content + "生日" + ":" + userbirth;
+                content = content + "</p>";
+                content = content + "</a>";
+                content = content + "</li>";
+
+                content = content + "<li>";
+                content = content + "<a href='#'>";
+                content = content + "<p style='font-size: 14px'>";
+                content = content + "类型:"+ usertype;
+                content = content + "</p>";
+                content = content + "</a>";
+                content = content + "</li>";
+
+                content = content + "<li>";
+                content = content + "<a href='#'>";
+                content = content + "<p style='font-size: 14px'>";
+                content = content + "性别:" + usersex;
+                content = content + "</p>";
+                content = content + "</a>";
+                content = content + "</li>";
+
+                content = content + "<li>";
+                content = content + "<a href='#'>";
+                content = content + "<p style='font-size: 14px'>";
+                content = content + "班级:" + userclass;
+                content = content + "</p>";
+                content = content + "</a>";
+                content = content + "</li>";
+
+                $('#userid').prepend(userid + "的个人信息");
+                $("#thelist").prepend(content).listview('refresh');
+            },
+            error: function () {
+                alert("fail");
+            }
+        });
+    }
+</script>

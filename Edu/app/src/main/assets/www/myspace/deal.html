@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta http-equiv="Content-Type" Content="text/html; charset=utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, minmum-scale=1.0,
+			maxmum-scale=1.0, user-scalable=no" name="viewport" id="viewport"/>
+    <script type="text/javascript" src="../js/cordova.js"></script>
+    <link rel="stylesheet" href="../css/jquery.mobile-1.4.3.min.css"
+          type="text/css"/>
+    <script type="text/javascript" src="../js/jquery-1.8.3.min.js">
+    </script>
+    <script type="text/javascript" src="../js/jquery.mobile-1.4.3.min.js">
+    </script>
+    <script type="text/javascript" src="../js/status.js">
+    </script>
+</head>
+<body onload="getContent()">
+</body>
+</html>
+<script>
+    var ticketid,voteid, value;
+    var values = new Array();
+    var userid = window.localStorage.getItem("username");
+    function getContent() {
+        var userid = window.localStorage.getItem("username");
+        var paramString = document.location.search;
+        if (paramString == "") {
+            value = null;
+        } else {
+            var reg = /^\?.*value=(.+)/i;
+            reg.exec(paramString);
+            value = RegExp.$1;
+        }
+        values = value.split(';');
+        ticketid = values[0];
+        voteid = values[1];
+        txtOption = values[2];
+        //alert(ticketid +voteid+ txtOption);
+        $.ajax({
+            type: "get",
+            async: false,
+            //url: "http://192.168.123.24:8084/EduWeb/VoteServlet?userid=" + userid + "&result=" + txtOption+"&voteid="+voteid,
+            url: "http://59.46.168.82:9090/EduWeb/VoteServlet?userid=" + userid + "&result=" + txtOption+"&voteid="+voteid,
+            dataType: "jsonp",
+            jsonp: "callback",
+            jsonpCallback: "itemsSearchGet",
+            success: function (json) {
+                if (json['flag'] == "1") {
+                    //alert("投票成功!");
+                    window.location.href = "option.html?value="+ticketid+"";
+                }
+            },
+            error: function () {
+                alert("fail");
+            }
+        });
+    }
+</script>

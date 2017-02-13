@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta http-equiv="Content-Type" Content="text/html; charset=utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, minmum-scale=1.0,
+			maxmum-scale=1.0, user-scalable=no" name="viewport" id="viewport"/>
+    <script type="text/javascript" src="../js/cordova.js"></script>
+    <link rel="stylesheet" href="../css/jquery.mobile-1.4.3.min.css"
+          type="text/css"/>
+    <script type="text/javascript" src="../js/jquery-1.8.3.min.js">
+    </script>
+    <script type="text/javascript" src="../js/jquery.mobile-1.4.3.min.js">
+    </script>
+</head>
+<style type="text/css">
+
+</style>
+<body onload="getContent()">
+<div data-role="page">
+    <div data-role="header" style="background-color: #63BBE3" data-position="fixed">
+        <h1 id="biaoti"></h1>
+
+    </div>
+    <div data-role="content">
+        <p id="starttime" style="font-weight:bold"></p>
+
+        <p id="endtime" style="font-weight:bold"></p>
+
+        <p id="place" style="font-weight:bold"></p>
+        <a data-role="button" id="button_q" style=" background-color: #63BBE3"><img src="../images/fuwu/qiangbiao.png"></a>
+        <a data-role="button" id="button_c" style=" background-color: #AACF52"><img src="../images/fuwu/chakan.png"></a>
+        <a data-role="button" id="button_w" style="background-color: #8499A1"><img src="../images/fuwu/wupiao.png"></a>
+        <a data-role="button" id="button_n" style="background-color: #63BBE3"></a>
+        <hr/>
+        <div id="content"></div>
+    </div>
+    <div data-role="footer" data-position="fixed">
+        <div style="background-color: #2e3132; height: 40px;">
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+<script>
+
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        document.addEventListener("backbutton", onBackKeyDown, false);
+    }
+    function onBackKeyDown() {
+        window.location.href = "enlist.html";
+    }
+
+    var actid, ticketid;
+    var userid = window.localStorage.getItem("username");
+    var userright = window.localStorage.getItem("userright");
+
+    function getContent() {
+        //alert(userid+userright);
+        var paramString = document.location.search;
+        if (paramString == "") {
+            actid = null;
+        } else {
+            var reg = /^\?.*value=(.+)/i;
+            reg.exec(paramString);
+            actid = RegExp.$1;
+        }
+
+        $.ajax({
+            type: "get",
+            async: false,
+            //url: "http://192.168.123.24:8084/EduWeb/GetOneActServlet?actid=" + actid + "&userid=" + userid,
+            url: "http://59.46.168.82:9090/EduWeb/GetOneActServlet?actid=" + actid + "&userid=" + userid,
+            dataType: "jsonp",
+            jsonp: "callback",
+            jsonpCallback: "itemsSearchGet",
+            success: function (json) {
+                var acttitle = json['title'];
+                var actbdate = json['ab_date'];
+                var actbtime = json['ab_time'];
+                var actedate = json['ae_date'];
+                var actetime = json['ae_time'];
+                var actticketflag = json['ticket_flag'];
+                var actcontent = json['content'];
+                var actadd = json['add'];
+                var actplace = json['place'];
+                ticketid = json['ticketid'];
+                var flag1 = json['flag1']; //是否有余票(0-没有,1-有)
+                var flag2 = json['flag2']; //是否抢票(0-可以抢(没抢过),1-不能再抢(已经抢过))
+                $('#biaoti').text(acttitle);
+                $('#starttime').text("开始:" + actbdate + " " + actbtime);
+                $('#endtime').text("结束:" + actedate + " " + actetime);
+                $('#place').text("地点:" + actplace);
+                $('#content').text(actcontent);
+                //alert(flag1+flag2);
+                if (userright == 1) {
+                    if (actticketflag == "0") {
+                    } else if (actticketflag == "1") {
+                        if (flag1 == "1") {
+                            if (flag2 == "0") {
+                                //可以抢票
+                                $('#button_c').hide();
+                                $('#button_w').hide();
+                                $('#button_n').hide();
+                                $('#button_q').css('background-color', '#63BBE3');
+                            } else if (flag2 == "1") {
+                                //查看
+                                $('#button_q').hide();
+                                $('#button_w').hide();
+                                $('#button_n').hide();
+                                $('#button_c').show();
+                                $('#button_c').css('background-color', '#AACF52');
+                            }
+                        } else if (flag1 == "0") {
+                            if (flag2 == "1") {
+                                //查看
+                                $('#button_q').hide();
+                                $('#button_w').hide();
+                                $('#button_n').hide();
+                                $('#button_c').show();
+                                $('#button_c').css('background-color', '#AACF52');
+                            } else {
+                                //无票
+                                $('#button_q').hide();
+                                $('#button_c').hide();
+                                $('#button_n').hide();
+                                $('#button_w').show();
+                                $('#button_w').css('background-color', '#8499A1');
+                            }
+                        }
+
+                    }
+                } else if (userright == "0" || userright == "null" || userright == null) {
+                    $('#button_q').hide();
+                    $('#button_c').hide();
+                    $('#button_w').hide();
+                    $('#button_n').show();
+                    $('#button_n').text("点此登录");
+                }
+
+
+            },
+            error: function () {
+                alert("fail");
+            }
+        });
+    }
+
+    $('#button_c').click(function () {
+        window.open("../myspace/oneticket.html?value=" + escape(ticketid));
+    });
+    $('#button_n').click(function () {
+        window.location.href = "../lgandreg/login.html";
+    });
+
+    $('#button_q').click(function () {
+        $.ajax({
+            type: "get",
+            async: false,
+            //url: "http://192.168.123.24:8084/EduWeb/AddActTicketServlet?actid=" + actid + "&userid=" + userid,
+            url: "http://59.46.168.82:9090/EduWeb/AddActTicketServlet?actid=" + actid + "&userid=" + userid,
+            dataType: "jsonp",
+            jsonp: "callback",
+            jsonpCallback: "itemsSearchGet",
+            success: function (json) {
+                var flag1 = json['flag1']; //是否抢票成功(0-不成功,1-成功)
+                var flag2 = json['flag2']; //是否抢票(0-不成功,1-成功)
+                if (flag2 == "1") {
+                    alert("不好意思,你已经抢过票!");
+                    getContent();
+                } else if (flag2 == "0") {
+                    if (flag1 == "1") {
+                        alert("恭喜您,抢票成功!");
+                        getContent();
+                    } else if (flag1 == "0") {
+                        alert("不好意思,抢票失败");
+                        getContent();
+                    }
+                }
+            },
+            error: function () {
+                alert("fail");
+            }
+        });
+    });
+</script>

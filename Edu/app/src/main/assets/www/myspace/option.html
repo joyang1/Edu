@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+    <script type="text/javascript" charset=utf-8 src="../js/cordova.js"></script>
+    <link rel="stylesheet" href="../css/jquery.mobile-1.4.3.min.css"
+          type="text/css"/>
+    <script type="text/javascript" charset=utf-8 src="../js/jquery-1.8.3.min.js">
+    </script>
+    <script type="text/javascript" charset=utf-8 src="../js/jquery.mobile-1.4.3.min.js">
+    </script>
+    <script type="text/javascript" charset=utf-8 src="../js/status.js">
+    </script>
+    <style type="text/css">
+    </style>
+
+</head>
+<body onload="getContent()">
+
+<div data-role="page" id="indexpage">
+    <div data-role="header" data-position="fixed" style="background-color: #63BBE3">
+        <h1>答题单</h1>
+    </div>
+    <div data-role="content">
+        <ul data-role="listview" id="thelist">
+        </ul>
+    </div>
+</div>
+</body>
+</html>
+<script>
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        document.addEventListener("backbutton", onBackKeyDown, false);
+    }
+    function onBackKeyDown() {
+        window.location.href = "oneticket.html?value=" + ticketid + "";
+    }
+
+    var ticketid;
+    var userid = window.localStorage.getItem("username");
+
+    var rnum = 0, cnum = 0;
+    var size, opsize;
+
+    function getContent() {
+        var paramString = document.location.search;
+        if (paramString == "") {
+            ticketid = null;
+        } else {
+            var reg = /^\?.*value=(.+)/i;
+            reg.exec(paramString);
+            ticketid = RegExp.$1;
+        }
+        $.ajax({
+            type: "get",
+            async: false,
+            //url: "http://192.168.123.24:8084/EduWeb/GetActVoteOptionServlet?ticketid=" + ticketid,
+            url: "http://59.46.168.82:9090/EduWeb/GetActVoteOptionServlet?ticketid=" + ticketid,
+            dataType: "jsonp",
+            jsonp: "callback",
+            jsonpCallback: "itemsSearchGet",
+            success: function (json) {
+                var content = "";
+                if (json['s'] == "n") {
+
+                } else if (json['s'] == "y") {
+                    size = json['size'];
+                    for (var i = 0; i < size; i++) {
+                        var id = json['titles'][i].id;
+                        var title = json['titles'][i].title;
+                        var type = json['titles'][i].type;
+                        opsize = json['titles'][i].opsize;
+                        var flag = json['titles'][i].flag;
+                        content = content + "<form name='biaodan'>";
+                        if(flag=="0"){
+                            if (type == "1") {
+                                rnum++;
+                                content = content + "<li>";
+                                content = content + "<p style='font-size: 18px; color:#000000'>";
+                                content = content+ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + title+"(单选)";
+                                content = content + "</p>";
+                                content = content + "<ul style='list-style: none'>";
+                                for (var j = 0; j < opsize; j++) {
+                                    var option = json['titles'][i]['options'][j].option;
+                                    var optionid = json['titles'][i]['options'][j].optionid;
+                                    content = content + "<li>";
+                                    content = content + "<input name='radiogroup" + rnum + "' onclick='getOptionId("+rnum+")' id="+optionid+" type='radio'>";
+                                    content = content + "<font>" + option + "</font>";
+                                    content = content + "</li>";
+                                }
+
+                                content = content + "<li>";
+                                content = content + "<a onclick='getUrl("+id+")' data-ajax=\"false\" data-role=\"button\">";
+                                content = content + "<img style='width: 400px' src='../images/fuwu/tp.png'>";
+                                content = content + "</a>";
+                                content = content + "</li>";
+                                content = content + "</ul>";
+                                content = content + "</li><br/><br/>";
+                            } else if (type == "2") {
+                                cnum++;
+                                content = content + "<li>";
+                                content = content + "<p style='font-size: 18px; color: #000000'>";
+                                content = content + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+title+"(多选)";
+                                content = content + "</p>";
+                                content = content + "<ul style='list-style: none'>";
+                                for (var j = 0; j < opsize; j++) {
+                                    var option = json['titles'][i]['options'][j].option;
+                                    var optionid = json['titles'][i]['options'][j].optionid;
+                                    content = content + "<li>";
+                                    content = content + "<input name='checkboxgroup" + cnum + "' onclick='getOptionsId("+cnum+")' id="+optionid+" type='checkbox'>";
+                                    content = content + "<font>" + option + "</font>";
+                                    content = content + "</li>";
+                                }
+
+                                content = content + "<li>";
+                                content = content + "<a href='#' onclick='getUrl("+id+")' data-ajax=\"false\" data-role=\"button\">";
+                                content = content + "<img style='width: 400px' src='../images/fuwu/tp.png'>";
+                                content = content + "</a>";
+                                content = content + "</li>";
+                                content = content + "</ul>";
+                                content = content + "</li>";
+                                content = content +"<br/><br/>";
+                            }
+                        }else if(flag == "1"){
+                            if (type == "1") {
+                                content = content + "<li>";
+                                content = content + "<p style='font-size: 18px; color:#000000'>";
+                                content = content+ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + title+"(单选)";
+                                content = content + "</p>";
+                                content = content + "<ul style='list-style: none'>";
+                                for (var j = 0; j < 1; j++) {
+                                    var option = json['titles'][i]['options'][j].option;
+                                    content = content + "<li>";
+                                    content = content + "<font>" + option + "</font>";
+                                    content = content + "</li>";
+                                }
+                                content = content + "</ul>";
+                                content = content + "</li><br/><br/>";
+                            } else if (type == "2") {
+                                content = content + "<li>";
+                                content = content + "<p style='font-size: 18px; color: #000000'>";
+                                content = content + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+title+"(多选)";
+                                content = content + "</p>";
+                                content = content + "<ul style='list-style: none'>";
+                                for (var j = 0; j < opsize; j++) {
+                                    var option = json['titles'][i]['options'][j].option;
+                                    content = content + "<li>";
+                                    content = content + "<font>" + option + "</font>";
+                                    content = content + "</li>";
+                                }
+                                content = content + "</ul>";
+                                content = content + "</li>";
+                                content = content +"<br/><br/>";
+                            }
+                        }
+                        content = content + "</form>";
+
+                    }
+                }
+                $("#thelist").prepend(content).listview('refresh');
+            },
+            error: function () {
+                alert("fail");
+            }
+        });
+    }
+
+    function getOptionId(id) {
+       txtOption = JS.GetRadioValue("radiogroup"+id);
+       //alert(txtOption);
+    }
+
+    function getOptionsId(id) {
+        txtOption = JS.GetCheckboxValue("checkboxgroup"+id);
+        //alert(txtOption);
+    }
+
+    function getUrl(id) {
+        window.open("deal.html?value="+ticketid+";"+id+";"+txtOption);
+        //alert(ticketid+id+txtOption);
+    }
+
+    var JS = {
+        IsNullOrEmpty:function(str){
+            if(typeof(str)=="undefined") return true;
+            if(str==null) return true;
+            if(str=="") return true;
+            return false;
+        },//IsNullOrEmpty
+        GetRadioValue:function(radioName)
+        {
+            var radios = document.getElementsByName(radioName);
+            for(var i = 0 ; i< radios.length; i++)
+            {
+                var radio = radios.item(i);
+                if(radio.checked)
+                {
+                    if(JS.IsNullOrEmpty(radio.value))
+                        return undefined;
+                    return radio.id;
+                    //return radio.value;
+                }
+            }
+            return undefined;
+        },//GetRadioValue
+        GetCheckboxValue:function(checkboxName)
+        {
+            var checkboxs = document.getElementsByName(checkboxName);
+            var ck = new Array();
+            var j  =  0;
+            for(var i = 0 ; i< checkboxs.length; i++)
+            {
+                var checkbox = checkboxs[i];
+                if(checkbox.checked)
+                {
+                    if(JS.IsNullOrEmpty(checkbox.value)) return undefined;
+                    //ck[j] = checkbox.value;
+                    ck[j] = checkbox.id;
+                    j++;
+                }
+            }
+            return j == 0 ? undefined : ck.join();
+        },//GetCheckboxValue
+        GetSelectValue:function(selectId)
+        {
+            var select = document.getElementById(selectId);
+            var options = select.options;
+            for(var i = 0 ; i<options.length ;i++)
+            {
+                var option = options[i];
+                if(option.selected)
+                {
+                    if(JS.IsNullOrEmpty(option.value)) return undefined;
+                    return option.value;
+                }
+            }
+            return undefined;
+        }//GetSelectValue
+    }
+
+
+
+</script>
+

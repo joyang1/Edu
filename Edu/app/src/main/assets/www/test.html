@@ -1,0 +1,234 @@
+!DOCTYPE HTML>
+
+<html>
+<head>
+    <title>PhoneGap_dataTransfer</title>
+    <meta http-equiv="Content-Type" Content="text/html; charset=utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, minmum-scale=1.0,
+			maxmum-scale=1.0, user-scalable=no" name="viewport" id="viewport"/>
+    <link rel="stylesheet" href="css/jquery.mobile-1.4.3.min.css"
+          type="text/css"/>
+    <script type="text/javascript" src="js/jquery-1.8.3.min.js">
+    </script>
+
+    <script type="text/javascript" src="js/jquery.mobile-1.4.3.min.js">
+    </script>
+    <script type="text/javascript" src="js/cordova.js"></script>
+
+    <script type="text/javascript">
+        $(document).bind("mobileinit", function () {
+            $.mobile.autoInitialize = false; //删除这行配置参数就会出现渲染错误
+            $.support.cors = true;
+            $.mobile.allowCrossDomainPages = true;
+        });
+
+        var pictureSource; // picture source
+        var destinationType; // sets the format of returned value
+        // Wait for Cordova to connect with the device
+
+        document.addEventListener("deviceready", onDeviceReady, false);
+        // Cordova is ready to be used!
+
+        window.resolveLocalFileSystemURI(imageURI, onResolveSuccess, onError);
+        function onResolveSuccess(fileEntry) {
+            alert(fileEntry.fullPath);
+        }
+        function onError(error) {
+            toLog("error code: " + error.code);
+        }
+        ;
+
+        function onDeviceReady() {
+            pictureSource = navigator.camera.PictureSourceType;
+            destinationType = navigator.camera.DestinationType;
+        }
+        // Called when a photo is successfully retrieved
+        //
+
+        function onPhotoDataSuccess(imageData) {
+            // Uncomment to view the base64 encoded image data
+            // console.log(imageData);
+            // Get image handle
+            //
+            var smallImage = document.getElementById('smallImage');
+            // Unhide image elements
+            //
+            smallImage.style.display = 'block';
+            // Show the captured photo
+            // The inline CSS rules are used to resize the image
+            //
+            //smallImage.src = "data:image/jpeg;base64," + imageData;
+            smallImage.src = imageData;
+
+        }
+        // Called when a photo is successfully retrieved
+        //
+
+        function onPhotoURISuccess(imageURI) {
+            // Uncomment to view the image file URI
+            // console.log(imageURI);
+            // Get image handle
+            //
+            var largeImage = document.getElementById('largeImage');
+            // Unhide image elements
+            //
+            largeImage.style.display = 'block';
+            // Show the captured photo
+            // The inline CSS rules are used to resize the image
+            //
+            //largeImage.src = "data:image/jpeg;base64," + imageData;
+            largeImage.src = imageURI;
+
+        }
+
+        // A button will call this function
+
+        //
+
+        function capturePhoto() {
+            // Take picture using device camera and retrieve image as base64-encoded string
+            navigator.camera.getPicture(uploadPhoto, onFail, {
+                quality: 50,
+                destinationType: navigator.camera.DestinationType.FILE_URI,//这里要用FILE_URI，才会返回文件的URI地址
+                //destinationType : Camera.DestinationType.DATA_URL,
+                sourceType: Camera.PictureSourceType.CAMERA,
+                allowEdit: true,
+                encodingType: Camera.EncodingType.JPEG,
+                popoverOptions: CameraPopoverOptions,
+                saveToPhotoAlbum: true
+            });
+
+        }
+
+        // A button will call this function
+
+        //
+
+        function capturePhotoEdit() {
+            // Take picture using device camera, allow edit, and retrieve image as base64-encoded string
+            navigator.camera.getPicture(uploadPhoto, onFail, {
+                quality: 50,
+                allowEdit: true,
+                destinationType: destinationType.DATA_URL,
+                saveToPhotoAlbum: true
+            });
+
+        }
+
+        // A button will call this function
+
+        //
+
+        function getPhoto(source) {
+            // Retrieve image file location from specified source
+            navigator.camera.getPicture(uploadPhoto, onFail, {
+                quality: 50,
+                destinationType: destinationType.FILE_URI,//这里要用FILE_URI，才会返回文件的URI地址
+                sourceType: source
+            });
+
+        }
+
+        // Called if something bad happens.
+
+        //
+
+        function onFail(message) {
+            alert('Failed because: ' + message);
+        }
+
+        function uploadPhoto(imageURI) {
+            var options = new FileUploadOptions();
+            options.fileKey = "fileAddPic";//用于设置参数，对应form表单里控件的name属性，这是关键，废了一天时间，完全是因为这里，这里的参数名字，和表单提交的form对应
+            options.fileName = imageURI.substr(imageURI.lastIndexOf('/') + 1);
+            //如果是图片格式，就用image/jpeg，其他文件格式上官网查API
+            options.mimeType = "image/jpeg";
+            //options.mimeType = "multipart/form-data";//这两个参数修改了，后台就跟普通表单页面post上传一样 enctype="multipart/form-data"
+            //这里的uri根据自己的需求设定，是一个接收上传图片的地址
+            var uri = encodeURI("http://192.168.1.105:8084/EduWeb/userimages");
+            //alert(imageURI);
+            //alert(uri);
+            options.chunkedMode = false;
+            /* var params = new Object();
+             params.fileAddPic = imageURI;
+             options.params = params; */
+            var ft = new FileTransfer();
+            ft.upload(imageURI, uri, win, fail, options);
+        }
+
+        function win(r) {
+            alert("上传成功");
+            var response = r.response;
+            //alert("response = " + response);
+            //这里的message是自定义的返回值，具体的根据自己的需求而定
+            var message = eval("(" + r.response + ")").message;
+            $("#_picFile").val(message);
+            //alert("message = " + message);
+            var imageURI = CONSTANT['context'] + message;
+            //alert("imageURI =" + imageURI);
+            onPhotoDataSuccess(imageURI);
+            onPhotoURISuccess(imageURI);
+            //alert("Code = " + r.responseCode);
+            //alert("Response = " + r.response);
+            //alert("Sent = " + r.bytesSent);
+            //以下是三个默认的返回参数
+            console.log("Code = " + r.responseCode);
+            console.log("Response = " + r.response);
+            console.log("Sent = " + r.bytesSent);
+
+        }
+
+        function fail(error) {
+            alert("An error has occurred: Code = " + error.code);
+            alert("upload error source " + error.source);
+            alert("upload error target " + error.target);
+            console.log("upload error source " + error.source);
+            console.log("upload error target " + error.target);
+        }
+    </script>
+
+</head>
+
+<body>
+
+<!-- page write -->
+
+<div data-role="page" id="write">
+
+    <div data-role="header" data-position="fixed">
+
+        <a href="#" data-icon="back" data-rel="back">返回</a>
+
+        <h1>拍照并上传图片</h1>
+
+        <a href="javascript:void(0);" data-icon="arrow-l" id="btn_nowsend">设置</a>
+
+    </div>
+
+    <!-- /header -->
+
+    <div data-role="content">
+        <input id="_picFile" type="hidden" value=""/>
+        <!-- take photoes -->
+        <button onclick="capturePhoto()">点击拍照</button>
+        <br>
+        <!--<button onclick="getPhoto(pictureSource.PHOTOLIBRARY)">从相册选择图片</button>-->
+        <br>
+        <button onclick="getPhoto(pictureSource.SAVEDPHOTOALBUM)">从相册选择图片</button>
+        <br> <img style="display: none; width: 120px; height: 120px;"
+                  id="smallImage" src=""/> <img
+            style="display: none; width: 240px; height: 240px;" id="largeImage"
+            src=""/>
+    </div>
+
+    <!-- /content -->
+    <div data-role="footer" data-position="fixed" class="ui-bar">
+        <a id="btn_timingsend" href="javascript:void(0);" data-role="button"
+           data-icon="plus">底部菜单</a> <a href="javascript:void(0);"
+                                        data-role="button" data-icon="arrow-u">底部菜单</a>
+    </div>
+    <!-- /footer -->
+</div>
+<!-- /page write -->
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" Content="text/html; charset=utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, minmum-scale=1.0,
+			maxmum-scale=1.0, user-scalable=no" name="viewport" id="viewport"/>
+    <link rel="stylesheet" href="css/jquery.mobile-1.4.3.min.css"
+          type="text/css"/>
+    <link rel="stylesheet" href="css/common.css">
+    <script type="text/javascript" src="js/cordova.js"></script>
+    <script type="text/javascript" src="js/jquery-1.8.3.min.js">
+    </script>
+    <script type="text/javascript" src="js/jquery.mobile-1.4.3.min.js">
+    </script>
+
+    <title></title>
+    <style type="text/css">
+        #mypage {
+            background: url(images/myedu/bg.gif), repeat;
+        }
+
+        h1 {
+            font-size: 50px;
+        }
+        #owninfo{
+            float: right;
+            margin-top: -140px;
+            margin-left: -40px;
+        }
+        .xuanxiang1 {
+            text-align: center;
+        }
+
+        .ui-controlgroup {
+            width: 100% !important;
+            padding: 0;
+            margin: 0;
+        }
+
+        .ui-controlgroup-controls {
+            width: 100%;
+        }
+
+        .xuanxiang1 a {
+            width: 25% !important;
+            box-sizing: border-box;
+        }
+
+        .lgr a {
+            text-decoration: none;
+            font-size: 20px;
+            color: royalblue;
+        }
+
+        .lgr a:hover {
+            color: #4fc849;
+        }
+    </style>
+</head>
+<body onLoad="checkIsLogin()">
+<div data-role="page" id="mypage">
+    <div data-role="header" data-position="fixed" style="height: 42px; background-color: #63BBE3">
+        <img src="images/myedu/myedu.png">
+        <span id="networkInfo" style="color: red"></span>
+    </div>
+    <div class="lgr" align="center">
+        <br/>
+        <!--<a id="reg" href="lgandreg/reg.html" data-ajax="false">注册</a>-->
+        <a id="login" href="lgandreg/login.html" style="text-align: center" data-ajax="false"><img
+                src="images/myedu/login.png"></a>
+    </div>
+    <div data-role="content">
+        <section class="sliderWrap clearfix">
+            <div><a id="own" href="#"><img id="logo" src="images/QQ.png" style="display: none">
+                <span id="owninfo"></span></a>
+            </div>
+        </section>
+        <div class="fill">
+            <section class="mSorts clearfix">
+                <ul>
+                    <li class="">
+                        <a href="#" data-ajax="false"><img
+                                src="images/myedu/coursetable.png" alt="课程表" id="coursetable"/>
+                        </a>
+                        <a href="#" class="pt" data-ajax="false"><img
+                                src="images/myedu/text.png" alt="考试日程" id="exam"/> </a>
+                    </li>
+                    <li class="">
+                        <a href="#" data-ajax="false"><img src="images/myedu/me.png" id="myspace" alt="我的空间"/> </a>
+                    </li>
+                    <li>
+                        <a href="#" data-ajax="false"><img
+                                src="images/myedu/ticket.png" alt="我的电子票" id="mytickets"/> </a>
+                        <a href="#" class="pt" data-ajax="false"><img
+                                src="images/myedu/follow.png" alt="我的关注" id="myorder"/> </a>
+                    </li>
+                </ul>
+            </section>
+        </div>
+
+        <div data-role="footer" data-position="fixed">
+            <div class="xuanxiang1">
+                <div data-role="controlgroup" data-type="horizontal">
+                    <a href="index.html" data-ajax="false" data-role="button"
+                       data-iconpos="top"><img src="images/zuixin1.png">
+
+                        <p style="line-height:27px; color:#8499A1">最新</p></a>
+                    <a href="dingyue.html" data-ajax="false" data-role="button"
+                       data-iconpos="top"><img src="images/dingyue1.png">
+
+                        <p style="line-height:27px; color:#8499A1">订阅</p></a>
+                    <a href="xiaoyuanfuwu.html" data-ajax="false" data-role="button"
+                       data-iconpos="top"><img src="images/fuwu1.png">
+
+                        <p style="line-height:27px; color:#8499A1">服务</p></a>
+                    <a href="myEdu.html" data-ajax="false" data-role="button"
+                       data-iconpos="top"><img src="images/me0.png">
+
+                        <p style="line-height:27px; color:#1d50a2">我</p></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<script>
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        document.addEventListener("backbutton", eventBackButton, false); //返回键
+    }
+    function eventBackButton() {
+        navigator.app.exitApp();
+    }
+    function isOffline() {
+        $('#networkInfo').prepend("网络连接错误，请重新连接!");
+    }
+    function isOnline() {
+        //alert("online");
+    }
+
+    var username = window.localStorage.getItem("username");
+    var userright = window.localStorage.getItem("userright");
+
+    $('#myspace').mouseover(function () {
+        //alert(username);
+        $('#myspace').attr('src', 'images/myedu/me-1.png');
+        if (userright == "1") {
+            window.location.href = "myspace.html";
+        } else {
+            window.location.href = "lgandreg/login.html";
+        }
+    });
+    $('#myspace').mouseleave(function () {
+        $('#myspace').attr('src', 'images/myedu/me.png');
+    });
+
+    $('#mytickets').mouseover(function () {
+        $('#mytickets').attr('src', 'images/myedu/ticket-1.png');
+        if (userright == "1") {
+            window.location.href = "myspace/mytickets.html";
+        } else {
+            window.location.href = "lgandreg/login.html";
+        }
+    });
+    $('#mytickets').mouseleave(function () {
+        $('#mytickets').attr('src', 'images/myedu/ticket.png');
+    });
+
+    $('#myorder').mouseover(function () {
+        $('#myorder').attr('src', 'images/myedu/follow-1.png');
+        if (userright == "1") {
+            window.location.href = "order/myorder.html";
+        } else {
+            window.location.href = "lgandreg/login.html";
+        }
+    });
+    $('#myorder').mouseleave(function () {
+        $('#myorder').attr('src', 'images/myedu/follow.png');
+    });
+
+    $('#coursetable').mouseover(function () {
+        $('#coursetable').attr('src', 'images/myedu/coursetable-1.png');
+    });
+    $('#coursetable').mouseleave(function () {
+        $('#coursetable').attr('src', 'images/myedu/coursetable.png');
+    });
+
+    $('#exam').mouseover(function () {
+        $('#exam').attr('src', 'images/myedu/text-1.png');
+    });
+    $('#exam').mouseleave(function () {
+        $('#exam').attr('src', 'images/myedu/text.png');
+    });
+
+    $('#own').click(function () {
+        //window.location.href = "http://192.168.123.24:8084/EduWeb/OwnInfoServlet?username="+username;
+        window.location.href = "myedu/owninfo.html";
+    });
+
+    function checkIsLogin() {
+        document.addEventListener("online", isOnline, false); //网络在线
+        document.addEventListener("offline", isOffline, false); //网络不在线
+        $.ajax({
+            type: "get",
+            async: false,
+            //url: "http://192.168.123.24:8084/EduWeb/IsLoginServlet?username="+username,
+            url: "http://59.46.168.82:9090/EduWeb/IsLoginServlet?username=" + username,
+            dataType: "jsonp",
+            jsonp: "callback",
+            jsonpCallback: "itemsSearchGet",
+            success: function (json) {
+                //alert(json['success']);
+                if (json['data'] == '1') {
+                    var userid = json['userid'];
+                    var name = json['name'];
+                    $('#login').hide();
+                    $('#reg').hide();
+                    $('#logo').css('display', 'block');
+                    $('#owninfo').prepend("昵称:"+userid+"<br/>"+"学号:" + username+"<br/>"+"姓名:"+name);
+                } else {
+                    //alert('请登录!');
+                    $('#login').show();
+                    $('#reg').show();
+                }
+            },
+            error: function () {
+                //alert("fail");
+            }
+        });
+    }
+</script>

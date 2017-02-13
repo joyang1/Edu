@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" Content="text/html; charset=utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, minmum-scale=1.0,
+			maxmum-scale=1.0, user-scalable=no" name="viewport" id="viewport"/>
+    <link rel="stylesheet" href="../css/jquery.mobile-1.4.3.min.css"
+          type="text/css"/>
+    <script type="text/javascript" src="../js/cordova.js"></script>
+    <script type="text/javascript" src="../js/jquery-1.8.3.min.js">
+    </script>
+    <script src="../js/jquery.mobile-1.4.3.min.js"></script>
+    <title></title>
+</head>
+<body onload="tianjia()">
+<div data-role="page">
+    <div data-role="header">
+        <a href="../myspace.html" data-ajax="false" data-icon="arrow-l"> 返回</a>
+
+        <h3>个人设置</h3>
+    </div>
+    <div data-role="content">
+        <ul data-role="listview">
+            <li data-role="list-divider">完善个人信息</li>
+            <li><font id="userid" style="color: rosybrown"></font></li>
+            <li><input type="text" id="userno" placeholder="学号" name="userid" onblur="checkuserno()" maxlength="10"><span
+                    id="msg1" style="color: red"></span></li>
+            <li><input type="text" id="person" placeholder="身份证号(后6位)" name="person" onblur="checkperson()" maxlength="6"><span
+                    id="msg2" style="color: red"></span></li>
+            <li>
+                <input type="button" id="OK" class="btn" value="保&nbsp;&nbsp;存"/>
+            </li>
+        </ul>
+    </div>
+</div>
+</body>
+</html>
+<script>
+    var reg1 = /^[A-Za-z0-9]+$/;  //判断是数字和字母的字符串
+    //var reg2 = /^\d{6,10}$/;      //判断是6到10位数字
+    var userid = localStorage.getItem('username');
+    function tianjia(){
+        $('#userid').text(userid);
+    }
+    function check() {
+        var userno = $('#userno').val();
+        var person = $('#person').val();
+        if (userid == "") {
+            $('#msg1').text("学号必填!");
+            return false;
+        } else {
+            $('#msg1').text("");
+        }
+        if (person == "") {
+            $('#msg2').text("身份证号必填!");
+            return false;
+        } else {
+            $('#msg2').text("");
+        }
+        return true;
+    }
+
+    function checkuserno() {
+        var userno = $('#userno').val();
+        var person = $('#person').val();
+        if (userno == '') {
+            //alert('用户名不能为空！');
+            $('#msg1').text("学号必填!");
+        }
+//        else if (!reg2.test(userid)) {
+//           $('#msg1').text('学号必须是6到10位数字!');
+//        }
+        else {
+            $('#msg1').text("");
+        }
+    }
+
+    function checkperson() {
+        var userid = $('#userno').val();
+        var person = $('#person').val();
+        if (person == "") {
+            $('#msg2').text('身份证号后6位必填!');
+        } else if (person.length != 6 || !reg1.test(person)) {
+            $('#msg2').text('长度必须为6且必须是身份证后6位');
+        } else {
+            $('#msg2').text('');
+        }
+    }
+
+    $(document).ready(function () {
+        $('#OK').click(function () {
+            if (check()) {
+                $.ajax({
+                    type: "get",
+                    async: false,
+                    //url: "http://192.168.0.14:8084/EduWeb/FinishServlet?userno=" + $('#userno').val() + "&person=" + $('#person').val()+"&userid="+userid,
+                    url: "http://59.46.168.82:9090/EduWeb/FinishServlet?userno=" + $('#userno').val() + "&person=" + $('#person').val()+"&userid="+userid,
+                    dataType: "jsonp",
+                    jsonp: "callback",
+                    jsonpCallback: "itemsSearchGet",
+                    success: function (json) {
+                        //alert(json['success']);
+                        //alert(json['right']);
+                        if (json['right']=="1") {
+                            alert("成功");
+                            window.localStorage.setItem("userright", json['right']);
+                            window.location.href = "../index.html";
+                        }
+                    },
+                    error: function () {
+                        alert("fail");
+                    }
+                });
+            }
+        });
+    });
+
+</script>
+
+

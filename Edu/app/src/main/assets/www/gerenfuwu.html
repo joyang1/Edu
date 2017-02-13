@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" Content="text/html; charset=utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, minmum-scale=1.0,
+			maxmum-scale=1.0, user-scalable=no" name="viewport" id="viewport"/>
+    <link rel="stylesheet" href="css/jquery.mobile-1.4.3.min.css"
+          type="text/css"/>
+    <script type="text/javascript" src="js/cordova.js">
+    </script>
+    <script type="text/javascript" src="js/jquery-1.8.3.min.js">
+    </script>
+    <script type="text/javascript" src="js/jquery.mobile-1.4.3.min.js">
+    </script>
+    <title></title>
+    <style type="text/css">
+        .xuanxiang, .xuanxiang1 {
+            text-align: center;
+        }
+
+        .ui-controlgroup {
+            width: 100% !important;
+            padding: 0;
+            margin: 0;
+        }
+
+        .ui-controlgroup-controls {
+            width: 100%;
+        }
+
+        .xuanxiang a {
+            width: 50% !important;
+            box-sizing: border-box;
+            height: 40px;
+        }
+
+        .xuanxiang1 a {
+            width: 25% !important;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+<div data-role="page">
+    <div data-role="header">
+        <div class="xuanxiang">
+            <div data-role="controlgroup" data-type="horizontal">
+                <a href="xiaoyuanfuwu.html" data-ajax="false" data-role="button"
+                   style="background: url(images/fuwu/xiaoyuan0.png)" data-transition="slideup"></a>
+                <a href="gerenfuwu.html" data-ajax="false" data-role="button"
+                   style="background: url(images/fuwu/geren1.png)   "></a>
+            </div>
+        </div>
+    </div>
+    <div data-role="content">
+        <ul data-role="listview">
+
+            <li>
+                <a href="http://www.dlpu.edu.cn/pages/map"><p>校园地图</p></a>
+            </li>
+
+            <li>
+                <a href="http://jiaowu.dlpu.edu.cn/morepro/48"><p>办事指南</p></a>
+            </li>
+            <li>
+                <a href="http://jiaowu.dlpu.edu.cn/display/121"><p>校历</p></a>
+            </li>
+            <li>
+                <a href="http://jiaowu.dlpu.edu.cn/Edit4/uploadfile/20140828133054183.pdf"><p>教师手册</p></a>
+            </li>
+            <li>
+                <a href="http://jiaowu.dlpu.edu.cn/display/117"><p>学生手册</p></a>
+            </li>
+        </ul>
+    </div>
+    <div data-role="footer" data-position="fixed">
+        <div class="xuanxiang1">
+            <div data-role="controlgroup" data-type="horizontal" style="background-color: black">
+                <a href="index.html" data-ajax="false" data-role="button"
+                   data-iconpos="top"><img src="images/zuixin1.png">
+
+                    <p style="line-height:0px; color:#8499A1">最新</p></a>
+                <a href="dingyue.html" data-ajax="false" data-role="button"
+                   data-iconpos="top"><img src="images/dingyue1.png">
+
+                    <p style="line-height:0px; color:#8499A1">订阅</p></a>
+                <a href="xiaoyuanfuwu.html" data-ajax="false" data-role="button"
+                   data-iconpos="top"><img src="images/fuwu0.png">
+
+                    <p style="line-height:0px; color:#2457CD">服务</p></a>
+                <a href="myEdu.html" data-ajax="false" data-role="button"
+                   data-iconpos="top"><img src="images/me1.png">
+
+                    <p style="line-height:0px; color:#8499A1">我</p></a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<script>
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        document.addEventListener("backbutton", eventBackButton, false); //返回键
+//            document.addEventListener("menubutton", eventMenuButton, false); //菜单键
+    }
+    function eventBackButton() {
+        navigator.app.exitApp();
+    }
+</script>

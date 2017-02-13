@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta http-equiv="Content-Type" Content="text/html; charset=utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, minmum-scale=1.0,
+			maxmum-scale=1.0, user-scalable=no" name="viewport" id="viewport"/>
+    <script type="text/javascript" src="../js/cordova.js"></script>
+    <link rel="stylesheet" href="../css/jquery.mobile-1.4.3.min.css"
+          type="text/css"/>
+    <script type="text/javascript" src="../js/jquery-1.8.3.min.js">
+    </script>
+    <script type="text/javascript" src="../js/jquery.mobile-1.4.3.min.js">
+    </script>
+</head>
+<body onload="getContent()">
+<div data-role="page">
+    <div data-role="header" style="background-color: #63BBE3" data-position="fixed">
+        <h1>订阅列表</h1>
+        <a href="myorder.html" data-ajax="false" data-role="button" data-icon="">已关注</a>
+    </div>
+    <div data-role="content">
+        <ul data-role="listview"  id="thelist">
+        </ul>
+        <br/>
+        <a data-role="button" id="jiazai">加载更多</a>
+    </div>
+    <div data-role="footer" data-position="fixed">
+        <div style="background-color: #2e3132; height: 40px;" >
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+<script>
+
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        document.addEventListener("backbutton", onBackKeyDown, false);
+    }
+    function onBackKeyDown() {
+        if(flag == "0"){
+            window.location.href = "orderfamily.html";
+        }else if(flag == "1"){
+            window.location.href = "worderfamily.html";
+        }
+
+    }
+
+
+    var orderid,flag;
+    var value;
+    var values = new Array();
+
+    var paramString = document.location.search;
+    if (paramString == "") {
+        value = null;
+    } else {
+        var reg = /^\?.*value=(.+)/i;
+        reg.exec(paramString);
+        value = RegExp.$1;
+    }
+
+    values = value.split(';');
+    orderid = values[0];
+    flag = values[1];
+
+    var userid = window.localStorage.getItem("username");
+    function getContent() {
+        $.ajax({
+            type: "get",
+            async: false,
+            //url: "http://192.168.123.24:8084/EduWeb/GetOrderListServlet?userid="+userid+"&ordertype="+orderid,
+            url: "http://59.46.168.82:9090/EduWeb/GetOrderListServlet?userid="+userid+"&ordertype="+orderid,
+            dataType: "jsonp",
+            jsonp: "callback",
+            jsonpCallback: "itemsSearchGet",
+            success: function (json) {
+                var content = "";
+                if(json['s']=="n"){
+
+                }else if(json['s'] == "y"){
+                    var size = json['size'];
+                    for(var i=0; i<size; i++){
+                        var orderdepid = json['titles'][i].id;
+                        var orderdepname = json['titles'][i].name;
+                        var value = orderdepid +";"+ flag;
+                        content = content + "<li>";
+                        content = content + "<a href='dy.html?value="+value+"' data-ajax='false'>";
+                        content = content + "<p style='font-size: 14px'>";
+                        content = content + orderdepid + ":" + orderdepname;
+                        //content = content + "<input style=\"float:right\" class=\"guanzhu\" type=\"button\" >";
+                        content = content + "<font style='float: right'>"+"关注"+"</font>";
+                        content = content + "</p>";
+                        content = content + "</a>";
+                        content = content + "</li>";
+                        if(i==size-1){
+                            window.localStorage.setItem("firstid",orderdepid);
+                        }
+                    }
+                }
+                $("#thelist").prepend(content).listview('refresh');
+            },
+            error: function () {
+                alert("fail");
+            }
+        });
+    }
+
+    $('#jiazai').click(function () {
+        var firstid = window.localStorage.getItem("firstid");
+        $('#jiazai').text('加载中......');
+        $.ajax({
+            type: "get",
+            async: false,
+            //url: "http://192.168.123.24:8084/EduWeb/GetNextTicketServlet?userid="+userid+"&firstid="+firstid,
+            url: "http://59.46.168.82:9090/EduWeb/GetNextTicketServlet?userid="+userid+"&firstid="+firstid,
+            dataType: "jsonp",
+            jsonp: "callback",
+            jsonpCallback: "itemsSearchGet",
+            success: function (json) {
+                var content = "";
+                if(json['s']=="n"){
+
+                }else if(json['s'] == "y"){
+                    var size = json['size'];
+                    for(var i=0; i<size; i++){
+                        var orderdepid = json['titles'][i].id;
+                        var orderdepname = json['titles'][i].name;
+                        content = content + "<li>";
+                        content = content + "<p style='font-size: 14px'>";
+                        content = content + orderdepid + ":" + orderdepname;
+                        content = content + "<input style='float:right' class='guanzhu' type='button' id="+orderdepid+" value='订阅'>";
+                        content = content + "</p>";
+                        content = content + "</li>";
+                        if(i==size-1){
+                            window.localStorage.setItem("firstid",orderdepid);
+                        }
+                    }
+                }
+                $("#thelist").append(content).listview('refresh');
+            },
+            error: function () {
+                alert("fail");
+            }
+        });
+    });
+</script>

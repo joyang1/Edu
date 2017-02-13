@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta http-equiv="Content-Type" Content="text/html; charset=utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, minmum-scale=1.0,
+			maxmum-scale=1.0, user-scalable=no" name="viewport" id="viewport"/>
+    <script type="text/javascript" src="../js/cordova.js"></script>
+    <link rel="stylesheet" href="../css/jquery.mobile-1.4.3.min.css"
+          type="text/css"/>
+    <script type="text/javascript" src="../js/jquery-1.8.3.min.js">
+    </script>
+    <script type="text/javascript" src="../js/jquery.mobile-1.4.3.min.js">
+    </script>
+</head>
+<style type="text/css">
+
+</style>
+<body onload="getContent()">
+<div data-role="page">
+    <div id="header" data-role="header" style="background-color: #63BBE3" data-position="fixed">
+        <div id="biaoti" style="font-size: 16px; height: 40px; text-align: center; vertical-align: middle; line-height: 20px"></div>
+    </div>
+    <div data-role="content">
+
+        <p id="time" style="font-weight:bold; text-align: center"></p>
+        <hr/>
+        <div id="content"></div>
+    </div>
+    <div data-role="footer" data-position="fixed">
+        <div style="background-color: #2e3132; height: 40px;" >
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+<script>
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        document.addEventListener("backbutton", onBackKeyDown, false);
+    }
+    function onBackKeyDown() {
+        window.location.href = "../info.html";
+    }
+
+    var infoid;
+    //var value;
+    //var values = new Array();
+    var userid = window.localStorage.getItem("username");
+
+    function getContent() {
+        var paramString = document.location.search;
+        if (paramString == "") {
+            infoid = null;
+        } else {
+            var reg = /^\?.*value=(.+)/i;
+            reg.exec(paramString);
+            infoid = RegExp.$1;
+        }
+
+        $.ajax({
+            type: "get",
+            async: false,
+            //url: "http://192.168.123.24:8084/EduWeb/GetOneNoticeServlet?id="+infoid,
+            url: "http://59.46.168.82:9090/EduWeb/GetOneNoticeServlet?id="+infoid,
+            dataType: "jsonp",
+            jsonp: "callback",
+            jsonpCallback: "itemsSearchGet",
+            success: function (json) {
+                var infotitle = json['title'];
+                var infodate = json['a_date'];
+                //var newstime = json['a_time'];
+                var infocontent = json['content'];
+                $('#biaoti').prepend(infotitle);
+                $('#time').prepend(infodate);
+                $('#content').prepend(infocontent);
+            },
+            error: function () {
+                alert("fail");
+            }
+        });
+    }
+</script>
